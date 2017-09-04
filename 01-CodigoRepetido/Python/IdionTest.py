@@ -45,9 +45,9 @@ class CustomerBook:
 
         self.customerNames.remove(name)
 
-    def tomar_tiempo_de_la_funcion_y_devolver_en_ms(self, objeto, funcion, args):
+    def tomar_tiempo_de_la_funcion_y_devolver_en_ms(self, funcion, args):
         timeBeforeRunning = time.time()
-        self.objeto.funcion(*args)
+        funcion(args)
         timeAfterRunning = time.time()
         tiempo = (timeAfterRunning - timeBeforeRunning) * 1000
         return tiempo
@@ -56,7 +56,7 @@ class IdionTest(unittest.TestCase):
     def testAddingCustomerShouldNotTakeMoreThan50Milliseconds(self):
         customerBook = CustomerBook()
 
-        tiempo = tomar_tiempo_de_la_funcion_y_devolver_en_ms(self, customerBook, addCustomerNamed, 'John Lennon')
+        tiempo = customerBook.tomar_tiempo_de_la_funcion_y_devolver_en_ms(customerBook.addCustomerNamed, 'John Lennon')
 
         self.assertTrue(tiempo < 50)
 
@@ -66,7 +66,7 @@ class IdionTest(unittest.TestCase):
 
         customerBook.addCustomerNamed(paulMcCartney)
 
-        tiempo = tomar_tiempo_de_la_funcion_y_devolver_en_ms(customerBook, removeCustomerNamed, paulMcCartney)
+        tiempo = customerBook.tomar_tiempo_de_la_funcion_y_devolver_en_ms(customerBook.removeCustomerNamed, 'Paul McCartney')
 
         self.assertTrue(tiempo < 100)
 

@@ -51,14 +51,17 @@ class CustomerBook:
         timeAfterRunning = time.time()
         tiempo = (timeAfterRunning - timeBeforeRunning) * 1000
         return tiempo
+    def provocar_fail_de_funcion(self, funcion, args):
+        funcion(args)
+        self.fail()
 
 class IdionTest(unittest.TestCase):
     def testAddingCustomerShouldNotTakeMoreThan50Milliseconds(self):
         customerBook = CustomerBook()
 
-        tiempo = customerBook.tomar_tiempo_de_la_funcion_y_devolver_en_ms(customerBook.addCustomerNamed, 'John Lennon')
+        tiempoDeAgregarClienteEnMs = customerBook.tomar_tiempo_de_la_funcion_y_devolver_en_ms(customerBook.addCustomerNamed, 'John Lennon')
 
-        self.assertTrue(tiempo < 50)
+        self.assertTrue(tiempoDeAgregarClienteEnMs < 50)
 
     def testRemovingCustomerShouldNotTakeMoreThan100Milliseconds(self):
         customerBook = CustomerBook()
@@ -66,17 +69,16 @@ class IdionTest(unittest.TestCase):
 
         customerBook.addCustomerNamed(paulMcCartney)
 
-        tiempo = customerBook.tomar_tiempo_de_la_funcion_y_devolver_en_ms(customerBook.removeCustomerNamed, 'Paul McCartney')
+        tiempoDeRemoverClienteEnMs = customerBook.tomar_tiempo_de_la_funcion_y_devolver_en_ms(customerBook.removeCustomerNamed, 'Paul McCartney')
 
-        self.assertTrue(tiempo < 100)
+        self.assertTrue(tiempoDeRemoverClienteEnMs < 100)
 
 
     def testCanNotAddACustomerWithEmptyName(self):
         customerBook = CustomerBook()
 
         try:
-            customerBook.addCustomerNamed('')
-            self.fail()
+            customerBook.provocar_fail_de_funcion(customerBook.addCustomerNamed,'')
         except ValueError as exception:
             self.assertEquals(exception.message,CustomerBook.CUSTOMER_NAME_CAN_NOT_BE_EMPTY)
             self.assertTrue(customerBook.isEmpty())
@@ -86,8 +88,7 @@ class IdionTest(unittest.TestCase):
         customerBook.addCustomerNamed('Paul McCartney')
 
         try:
-            customerBook.removeCustomerNamed('John Lennon')
-            self.fail()
+            customerBook.provocar_fail_de_funcion(customerBook.removeCustomerNamed,'John Lennon')
         except KeyError as exception:
             self.assertEquals(exception.message,CustomerBook.INVALID_CUSTOMER_NAME)
             self.assertTrue(customerBook.numberOfCustomers()==1)

@@ -10,6 +10,33 @@
 import unittest
 import time
 
+
+def probarYcapturarError(funcionTry, argsTry1, argsTry2, funcionExcept, argsExcept1, argsExcept2, error):
+    try:
+            funcionTry(argsTry1,argsTry2)
+    except error as exception:
+            funcionExcept(exception,argsExcept1,argsExcept2)   
+
+def provocar_fail_de_funcion(funcion, args):
+    funcion(args)
+    self.fail() 
+
+def verificacionAdd(exception, self, customerBook):
+    self.assertEquals(exception.message,CustomerBook.CUSTOMER_NAME_CAN_NOT_BE_EMPTY)
+    self.assertTrue(customerBook.isEmpty()) 
+
+def verificacionRemove(exception, self, customerBook):
+    self.assertEquals(exception.message,CustomerBook.INVALID_CUSTOMER_NAME)
+    self.assertTrue(customerBook.numberOfCustomers()==1)
+    self.assertTrue(customerBook.includesCustomerNamed('Paul McCartney')) 
+
+def tomar_tiempo_de_la_funcion_y_devolver_en_ms(funcion, args):
+    timeBeforeRunning = time.time()
+    funcion(args)
+    timeAfterRunning = time.time()
+    tiempo = (timeAfterRunning - timeBeforeRunning) * 1000
+    return tiempo
+
 class CustomerBook:
 
     CUSTOMER_NAME_CAN_NOT_BE_EMPTY = 'Customer name can not be empty'
@@ -45,21 +72,12 @@ class CustomerBook:
 
         self.customerNames.remove(name)
 
-    def tomar_tiempo_de_la_funcion_y_devolver_en_ms(self, funcion, args):
-        timeBeforeRunning = time.time()
-        funcion(args)
-        timeAfterRunning = time.time()
-        tiempo = (timeAfterRunning - timeBeforeRunning) * 1000
-        return tiempo
-    def provocar_fail_de_funcion(self, funcion, args):
-        funcion(args)
-        self.fail()
-
 class IdionTest(unittest.TestCase):
+    
     def testAddingCustomerShouldNotTakeMoreThan50Milliseconds(self):
         customerBook = CustomerBook()
 
-        tiempoDeAgregarClienteEnMs = customerBook.tomar_tiempo_de_la_funcion_y_devolver_en_ms(customerBook.addCustomerNamed, 'John Lennon')
+        tiempoDeAgregarClienteEnMs = tomar_tiempo_de_la_funcion_y_devolver_en_ms(customerBook.addCustomerNamed, 'John Lennon')
 
         self.assertTrue(tiempoDeAgregarClienteEnMs < 50)
 
@@ -69,30 +87,19 @@ class IdionTest(unittest.TestCase):
 
         customerBook.addCustomerNamed(paulMcCartney)
 
-        tiempoDeRemoverClienteEnMs = customerBook.tomar_tiempo_de_la_funcion_y_devolver_en_ms(customerBook.removeCustomerNamed, 'Paul McCartney')
+        tiempoDeRemoverClienteEnMs = tomar_tiempo_de_la_funcion_y_devolver_en_ms(customerBook.removeCustomerNamed, 'Paul McCartney')
 
         self.assertTrue(tiempoDeRemoverClienteEnMs < 100)
 
-
     def testCanNotAddACustomerWithEmptyName(self):
         customerBook = CustomerBook()
-
-        try:
-            customerBook.provocar_fail_de_funcion(customerBook.addCustomerNamed,'')
-        except ValueError as exception:
-            self.assertEquals(exception.message,CustomerBook.CUSTOMER_NAME_CAN_NOT_BE_EMPTY)
-            self.assertTrue(customerBook.isEmpty())
+        probarYcapturarError(provocar_fail_de_funcion,customerBook.addCustomerNamed,'',verificacionAdd,self,customerBook,ValueError)
 
     def testCanNotRemoveNotAddedCustomer(self):
         customerBook = CustomerBook()
         customerBook.addCustomerNamed('Paul McCartney')
-
-        try:
-            customerBook.provocar_fail_de_funcion(customerBook.removeCustomerNamed,'John Lennon')
-        except KeyError as exception:
-            self.assertEquals(exception.message,CustomerBook.INVALID_CUSTOMER_NAME)
-            self.assertTrue(customerBook.numberOfCustomers()==1)
-            self.assertTrue(customerBook.includesCustomerNamed('Paul McCartney'))
+        
+        probarYcapturarError(provocar_fail_de_funcion,customerBook.removeCustomerNamed,'John Lennon',verificacionRemove,self,customerBook,KeyError)
 
 
 if __name__ == "__main__":

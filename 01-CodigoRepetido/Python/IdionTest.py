@@ -11,25 +11,6 @@ import unittest
 import time
 
 
-def probarYcapturarError(funcionTry, argsTry1, argsTry2, funcionExcept, argsExcept1, argsExcept2, error):
-    try:
-            funcionTry(argsTry1,argsTry2)
-    except error as exception:
-            funcionExcept(exception,argsExcept1,argsExcept2)   
-
-def provocar_fail_de_funcion(funcion, args):
-    funcion(args)
-    self.fail() 
-
-def verificacionAdd(exception, self, customerBook):
-    self.assertEquals(exception.message,CustomerBook.CUSTOMER_NAME_CAN_NOT_BE_EMPTY)
-    self.assertTrue(customerBook.isEmpty()) 
-
-def verificacionRemove(exception, self, customerBook):
-    self.assertEquals(exception.message,CustomerBook.INVALID_CUSTOMER_NAME)
-    self.assertTrue(customerBook.numberOfCustomers()==1)
-    self.assertTrue(customerBook.includesCustomerNamed('Paul McCartney')) 
-
 def tomar_tiempo_de_la_funcion_y_devolver_en_ms(funcion, args):
     timeBeforeRunning = time.time()
     funcion(args)
@@ -90,17 +71,36 @@ class IdionTest(unittest.TestCase):
         tiempoDeRemoverClienteEnMs = tomar_tiempo_de_la_funcion_y_devolver_en_ms(customerBook.removeCustomerNamed, 'Paul McCartney')
 
         self.assertTrue(tiempoDeRemoverClienteEnMs < 100)
+    def provocar_fail_de_funcion(self,funcion, args):
+        funcion(args)
+        self.fail() 
+    def probarYcapturarError(self, bloqueTry, bloqueExcept, codigoError):
+        try:
+            bloqueTry()
+        except codigoError as exception:
+            bloqueExcept(exception)
+    
 
     def testCanNotAddACustomerWithEmptyName(self):
         customerBook = CustomerBook()
-        probarYcapturarError(provocar_fail_de_funcion,customerBook.addCustomerNamed,'',verificacionAdd,self,customerBook,ValueError)
+        bloqueTry = lambda: self.provocar_fail_de_funcion(customerBook.addCustomerNamed,'')
+        def verificacionAgregarNombreVacio(exception):
+            self.assertEquals(exception.message,CustomerBook.CUSTOMER_NAME_CAN_NOT_BE_EMPTY)
+            self.assertTrue(customerBook.isEmpty()) 
+
+        self.probarYcapturarError(bloqueTry,verificacionAgregarNombreVacio,ValueError)
 
     def testCanNotRemoveNotAddedCustomer(self):
         customerBook = CustomerBook()
         customerBook.addCustomerNamed('Paul McCartney')
-        
-        probarYcapturarError(provocar_fail_de_funcion,customerBook.removeCustomerNamed,'John Lennon',verificacionRemove,self,customerBook,KeyError)
+        bloqueTry = lambda: self.provocar_fail_de_funcion(customerBook.removeCustomerNamed,'John Lennon')
+        def verificacionRemoverNoAgregado(exception):
+            self.assertEquals(exception.message,CustomerBook.INVALID_CUSTOMER_NAME)
+            self.assertTrue(customerBook.numberOfCustomers()==1)
+            self.assertTrue(customerBook.includesCustomerNamed('Paul McCartney')) 
 
+        self.probarYcapturarError(bloqueTry,verificacionRemoverNoAgregado,KeyError)
+        
 
 if __name__ == "__main__":
     unittest.main()

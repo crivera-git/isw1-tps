@@ -51,11 +51,26 @@ class Entero(Numero):
             return False
         
     def __add__(self,sumando):
-        return Entero(self._valor+sumando.valor())
+        return sumando.sumaConEntero(self)
+    def sumaConEntero(self,sumando):
+        return Entero(self._valor+sumando.valor()) 
+
+    def sumaConFraccion(self,sumando):
+        nuevoDenominador = sumando.denominador()
+        primerSumando = sumando.numerador()
+        segundoSumando = sumando.denominador() * self._valor
+        nuevoNumerador = primerSumando + segundoSumando
+
+        return nuevoNumerador / nuevoDenominador
  
     def __mul__(self,factor):
+        return factor.multiplicacionConEntero(self)
+        
+    
+    def multiplicacionConEntero(self,factor):
         return Entero(self._valor*factor.valor())
-         
+    def multiplicacionConFraccion(self,factor):
+        return Fraccion(factor.numerador()*self._valor,factor.denominador())     
     def __div__(self,divisor):
         return divisor.dividirEntero(self)
         
@@ -114,9 +129,19 @@ class Fraccion(Numero):
             return False
         
     def __add__(self,sumando):
+        sumando.sumaConFraccion(self)
+
+    def sumaConFraccion(self,sumando):
         nuevoDenominador = self._denominador * sumando.denominador()
         primerSumando = self._numerador * sumando.denominador()
         segundoSumando = self._denominador * sumando.numerador()
+        nuevoNumerador = primerSumando + segundoSumando
+        
+        return Fraccion(nuevoNumerador,nuevoDenominador)
+    def sumaConEntero(self,sumando):
+        nuevoDenominador = self._denominador
+        primerSumando = self._numerador
+        segundoSumando = self._denominador * sumando
         nuevoNumerador = primerSumando + segundoSumando
         
         return nuevoNumerador / nuevoDenominador
@@ -212,7 +237,8 @@ class NumeroTest(unittest.TestCase):
         self.assertEqual(self.uno, self.dos/self.dos)
     
     def test06SumaDeFracciones(self):
-        sieteDecimos = Entero(7) / Entero (10) # <- REEMPLAZAR POR LO QUE CORRESPONDA;
+        #sieteDecimos = Entero(7) / Entero (10) # <- REEMPLAZAR POR LO QUE CORRESPONDA;
+        sieteDecimos = Fraccion(7,10)
         self.assertEqual (sieteDecimos,self.unQuinto+self.unMedio)
         # 
         # La suma de fracciones es:

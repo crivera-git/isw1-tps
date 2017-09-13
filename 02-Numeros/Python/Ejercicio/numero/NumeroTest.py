@@ -58,23 +58,23 @@ class Entero(Numero):
     def sumaConFraccion(self,sumando):
         nuevoDenominador = sumando.denominador()
         primerSumando = sumando.numerador()
-        segundoSumando = sumando.denominador() * self._valor
+        segundoSumando = sumando.denominador() * self
         nuevoNumerador = primerSumando + segundoSumando
 
         return nuevoNumerador / nuevoDenominador
  
     def __mul__(self,factor):
         return factor.multiplicacionConEntero(self)
-        
-    
     def multiplicacionConEntero(self,factor):
         return Entero(self._valor*factor.valor())
     def multiplicacionConFraccion(self,factor):
-        return Fraccion(factor.numerador()*self._valor,factor.denominador())     
+        return (factor.numerador()*self) / (factor.denominador())     
     def __div__(self,divisor):
-        return divisor.dividirEntero(self)
+        return divisor.dividirConDividendoEntero(self)
+    def dividirConDividendoFraccion(self,dividendo):
+        return Fraccion(dividendo.numerador(),dividendo.denominador()*self)
         
-    def dividirEntero(self,dividendo):
+    def dividirConDividendoEntero(self,dividendo):
         if self.esCero():
             raise Exception(Numero.DESCRIPCION_DE_ERROR_DE_DIVISION_POR_CERO)
         if self.esUno():
@@ -129,15 +129,14 @@ class Fraccion(Numero):
             return False
         
     def __add__(self,sumando):
-        sumando.sumaConFraccion(self)
+        return sumando.sumaConFraccion(self)
 
     def sumaConFraccion(self,sumando):
         nuevoDenominador = self._denominador * sumando.denominador()
         primerSumando = self._numerador * sumando.denominador()
         segundoSumando = self._denominador * sumando.numerador()
         nuevoNumerador = primerSumando + segundoSumando
-        
-        return Fraccion(nuevoNumerador,nuevoDenominador)
+        return nuevoNumerador / nuevoDenominador
     def sumaConEntero(self,sumando):
         nuevoDenominador = self._denominador
         primerSumando = self._numerador
@@ -147,13 +146,18 @@ class Fraccion(Numero):
         return nuevoNumerador / nuevoDenominador
   
     def __mul__(self,factor):
+        return factor.multiplicacionConFraccion(self)
+    def multiplicacionConFraccion(self,factor):
         return (self._numerador * factor.numerador()) / (self._denominador * factor.denominador())
-            
+    def multiplicacionConEntero(self,factor):
+        return (self._numerador*factor) / (self._denominador)            
     def __div__(self,divisor):
-        return divisor.dividirFraccion(self)
+        return divisor.dividirConDividendoFraccion(self)
     
-    def dividirFraccion(self,dividendo):
+    def dividirConDividendoFraccion(self,dividendo):
         return (dividendo.numerador() * self._denominador) / (dividendo.denominador () * self._numerador)
+    def dividirConDividendoEntero(self,dividendo):
+        return (dividendo*self._denominador) / (self._numerador)
 
 class NumeroTest(unittest.TestCase):
 
@@ -218,7 +222,7 @@ class NumeroTest(unittest.TestCase):
         self.seisQuintos = self.createSeisQuintos()
         self.cuatroMedios = self.createCuatroMedios()
         self.dosCuartos = self.createDosCuartos()
-             
+    
     def test01EsCeroDevuelveTrueSoloParaElCero(self):
         self.assertTrue (self.cero.esCero())
         self.assertFalse (self.uno.esCero())
@@ -237,7 +241,6 @@ class NumeroTest(unittest.TestCase):
         self.assertEqual(self.uno, self.dos/self.dos)
     
     def test06SumaDeFracciones(self):
-        #sieteDecimos = Entero(7) / Entero (10) # <- REEMPLAZAR POR LO QUE CORRESPONDA;
         sieteDecimos = Fraccion(7,10)
         self.assertEqual (sieteDecimos,self.unQuinto+self.unMedio)
         # 
@@ -250,6 +253,7 @@ class NumeroTest(unittest.TestCase):
         #
 
     def test07MultiplicacionDeFracciones(self):
+
         self.assertEqual (self.dosVeinticincoavos,self.unQuinto*self.dosQuintos)
         # 
         # La multiplicacion de fracciones es:
@@ -332,6 +336,7 @@ class NumeroTest(unittest.TestCase):
     
     def test17LaSumaDeFraccionesPuedeDarEntero(self):
         self.assertEquals (self.uno,self.unMedio+self.unMedio)
+
 
     def test18LaMultiplicacionDeFraccionesPuedeDarEntero(self):
         self.assertEquals(self.dos,self.cuatro*self.unMedio)

@@ -241,7 +241,7 @@ class NumeroTest(unittest.TestCase):
         self.assertEqual(self.uno, self.dos/self.dos)
     
     def test06SumaDeFracciones(self):
-        sieteDecimos = Fraccion(7,10)
+        sieteDecimos = Fraccion(Entero(7),Entero(10))
         self.assertEqual (sieteDecimos,self.unQuinto+self.unMedio)
         # 
         # La suma de fracciones es:

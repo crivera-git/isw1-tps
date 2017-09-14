@@ -73,7 +73,7 @@ class Entero(Numero):
         if divisor.esCero():
             raise Exception(Numero.DESCRIPCION_DE_ERROR_DE_DIVISION_POR_CERO)
         if divisor.esUno():
-            return divisor
+            return dividendo
         return divisor.dividirConDividendoEntero(self)
     def dividirConDividendoFraccion(self,dividendo):
         return Fraccion(dividendo.numerador(),dividendo.denominador()*self)
@@ -153,10 +153,11 @@ class Fraccion(Numero):
     def multiplicacionConEntero(self,factor):
         return (self._numerador*factor) / (self._denominador)
     def __div__(self,divisor):
-		if divisor.esCero():
-			raise Exception(Numero.DESCRIPCION_DE_ERROR_DE_DIVISION_POR_CERO)
-
-		return divisor.dividirConDividendoFraccion(self)
+        if divisor.esCero():
+            raise Exception(Numero.DESCRIPCION_DE_ERROR_DE_DIVISION_POR_CERO)
+        if divisor.esUno():
+            return dividendo
+        return divisor.dividirConDividendoFraccion(self)
 
     def dividirConDividendoFraccion(self,dividendo):
         return (dividendo.numerador() * self._denominador) / (dividendo.denominador () * self._numerador)

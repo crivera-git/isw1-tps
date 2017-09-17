@@ -20,15 +20,18 @@ class Stack:
         self.elementos.append(anObject)
 
     def pop(self):
-        if self.isEmpty():
-            return 'Stack is empty'
-        return self.elementos.pop()
+        try:
+            return self.elementos.pop()
+        except Exception as exc:
+            exc.message = Stack.STACK_EMPTY_DESCRIPTION
+            raise
 
     def top(self):
-        if self.isEmpty():
-            return 'Stack is empty'
-        return self.elementos[len(self.elementos)-1]
-
+        try:
+            return self.elementos[len(self.elementos)-1]
+        except Exception as exc:
+            exc.message = Stack.STACK_EMPTY_DESCRIPTION
+            raise
 
     def isEmpty(self):
         return self.elementos == []

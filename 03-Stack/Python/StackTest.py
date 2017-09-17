@@ -20,24 +20,28 @@ class Stack:
         self.elementos.append(anObject)
 
     def pop(self):
-        try:
+        if self.isEmpty():
+            raise Mi_Error()
+        else:
             return self.elementos.pop()
-        except Exception as exc:
-            exc.message = Stack.STACK_EMPTY_DESCRIPTION
-            raise
 
     def top(self):
-        try:
+        if self.isEmpty():
+            raise Mi_Error()
+        else:
             return self.elementos[len(self.elementos)-1]
-        except Exception as exc:
-            exc.message = Stack.STACK_EMPTY_DESCRIPTION
-            raise
 
     def isEmpty(self):
         return self.elementos == []
 
     def size(self):
         return len(self.elementos)
+
+class Mi_Error(Exception, Stack):
+    
+    def __init__(self):
+        un_stack = Stack()
+        self.message = un_stack.STACK_EMPTY_DESCRIPTION
 
 class StackTest(unittest.TestCase):
 

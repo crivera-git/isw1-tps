@@ -15,41 +15,41 @@ class Stack:
     STACK_EMPTY_DESCRIPTION = 'Stack is empty'
     def __init__(self):
         
-        self.cant = 0
+        self.cantidadDeElementos = 0
         self.PilaVacia = StackVacio()
         self.PilaNoVacia = StackNoVacio()
         self.Subclases = [self.PilaVacia, self.PilaNoVacia]
-    def stackAusar(self):
+    def elegirPila(self):
         for subclase in self.Subclases:
-            if subclase.esUsada(self.cant):
+            if subclase.esUsada(self.cantidadDeElementos):
                 return subclase
     def pop(self):
-        stackAusar = self.stackAusar()
-        elemento = stackAusar.pop()
-        self.cant = self.cant-1
+        pilaAusar = self.elegirPila()
+        elemento = pilaAusar.pop()
+        self.cantidadDeElementos = self.cantidadDeElementos-1
         return elemento
-    def esUsada(self,cant):
+    def esUsada(self,cantidadDeElementos):
         self.shouldBeImplementedBySubclass()
     def top(self):
-        stackAusar = self.stackAusar()
-        return stackAusar.top()
+        pilaAusar = self.elegirPila()
+        return pilaAusar.top()
         self.shouldBeImplementedBySubclass()
     def push(self,elemento):
-        self.cant = self.cant +1
+        self.cantidadDeElementos = self.cantidadDeElementos +1
         return self.PilaNoVacia.push(elemento)
     def isEmpty(self):
-        return self.cant == 0
+        return self.cantidadDeElementos == 0
 
     def size(self):
-        return self.cant
+        return self.cantidadDeElementos
     def shouldBeImplementedBySubclass(self):
         raise NotImplementedError('Should be implemented by the subclass')
 
 class StackVacio(Stack):
     def __init__(self):
         pass
-    def esUsada(self,cant):
-        return cant == 0
+    def esUsada(self,cantidadDeElementos):
+        return cantidadDeElementos == 0
     def pop(self):
         raise Mi_Error()
     def top(self):
@@ -58,8 +58,8 @@ class StackVacio(Stack):
 class StackNoVacio(Stack):
     def __init__(self):
         self.stack = []
-    def esUsada(self,cant):
-        return cant != 0
+    def esUsada(self,cantidadDeElementos):
+        return cantidadDeElementos != 0
     def push(self, anObject):
         self.stack.append(anObject)
 
@@ -74,37 +74,7 @@ class StackNoVacio(Stack):
 
     def size(self):
         return len(self.elementos)
-    '''
-class Stack:
 
-
-    STACK_EMPTY_DESCRIPTION = 'Stack is empty'
-    def __init__(self):
-        self.elementos = []
-
-    def push(self, anObject):
-        pilaCorrespondiente = self.dameStack()
-        pilaCorrespondiente.pushear(anObject)
-        self.elementos.append(anObject)
-
-    def pop(self):
-        if self.isEmpty():
-            raise Mi_Error()
-        else:
-            return self.elementos.pop()
-
-    def top(self):
-        if self.isEmpty():
-            raise Mi_Error()
-        else:
-            return self.elementos[len(self.elementos)-1]
-
-    def isEmpty(self):
-        return self.elementos == []
-
-    def size(self):
-        return len(self.elementos)
-'''
 class Mi_Error(Exception, Stack):
     
     def __init__(self):
@@ -186,3 +156,6 @@ class StackTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+

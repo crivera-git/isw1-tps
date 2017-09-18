@@ -10,13 +10,81 @@
 
 import unittest
 
+
 class Stack:
+    STACK_EMPTY_DESCRIPTION = 'Stack is empty'
+    def __init__(self):
+        
+        self.cant = 0
+        self.PilaVacia = StackVacio()
+        self.PilaNoVacia = StackNoVacio()
+        self.Subclases = [self.PilaVacia, self.PilaNoVacia]
+    def stackAusar(self):
+        for subclase in self.Subclases:
+            if subclase.esUsada(self.cant):
+                return subclase
+    def pop(self):
+        stackAusar = self.stackAusar()
+        elemento = stackAusar.pop()
+        self.cant = self.cant-1
+        return elemento
+    def esUsada(self,cant):
+        self.shouldBeImplementedBySubclass()
+    def top(self):
+        stackAusar = self.stackAusar()
+        return stackAusar.top()
+        self.shouldBeImplementedBySubclass()
+    def push(self,elemento):
+        self.cant = self.cant +1
+        return self.PilaNoVacia.push(elemento)
+    def isEmpty(self):
+        return self.cant == 0
+
+    def size(self):
+        return self.cant
+    def shouldBeImplementedBySubclass(self):
+        raise NotImplementedError('Should be implemented by the subclass')
+
+class StackVacio(Stack):
+    def __init__(self):
+        pass
+    def esUsada(self,cant):
+        return cant == 0
+    def pop(self):
+        raise Mi_Error()
+    def top(self):
+        raise Mi_Error()
+
+class StackNoVacio(Stack):
+    def __init__(self):
+        self.stack = []
+    def esUsada(self,cant):
+        return cant != 0
+    def push(self, anObject):
+        self.stack.append(anObject)
+
+    def pop(self):
+        return self.stack.pop()
+
+    def top(self):
+        return self.stack[len(self.stack)-1]
+
+    def isEmpty(self):
+        return self.elementos == []
+
+    def size(self):
+        return len(self.elementos)
+    '''
+class Stack:
+
 
     STACK_EMPTY_DESCRIPTION = 'Stack is empty'
     def __init__(self):
         self.elementos = []
 
     def push(self, anObject):
+        pilaCorrespondiente = self.dameStack()
+        pilaCorrespondiente.pushear(anObject)
         self.elementos.append(anObject)
 
     def pop(self):
@@ -36,7 +104,7 @@ class Stack:
 
     def size(self):
         return len(self.elementos)
-
+'''
 class Mi_Error(Exception, Stack):
     
     def __init__(self):

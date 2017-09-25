@@ -81,7 +81,7 @@ class Portfolio(SummarizingAccount):
     def hasRegistered(self, transaction):
         return transaction in self.transactions()
     def manages(self, anAccount):
-        res = 0
+        res = self==anAccount
         for account in self._accounts:
             if account.manages(anAccount):
                 res = 1
@@ -101,6 +101,12 @@ class Portfolio(SummarizingAccount):
         
     @classmethod
     def createWith(cls,anAccount,anotherAccount):
+        if anAccount==anotherAccount:
+            raise Exception(Portfolio.ACCOUNT_ALREADY_MANAGED)
+        if anAccount.manages(anotherAccount):
+            raise Exception(Portfolio.ACCOUNT_ALREADY_MANAGED)
+        if anotherAccount.manages(anAccount):
+            raise Exception(Portfolio.ACCOUNT_ALREADY_MANAGED)
         res = Portfolio()
         res.addAccount(anAccount)
         res.addAccount(anotherAccount)

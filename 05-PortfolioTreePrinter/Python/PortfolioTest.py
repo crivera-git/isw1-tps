@@ -84,13 +84,17 @@ class ReceptiveAccount(SummarizingAccount):
         for transf in self.transactions():
             if isinstance(transf, Deposit):
                 miBalance = miBalance + transf.value()
-            if isinstance(transf, Withdraw):
+            elif isinstance(transf, Withdraw):
                 miBalance = miBalance - transf.value()
-            if isinstance(transf, Transfer):
+            elif isinstance(transf, Transfer):
                 if self == transf.fromAccount():
                     miBalance = miBalance - transf.value()
                 elif self == transf.toAccount():
                     miBalance = miBalance + transf.value()
+            elif isinstance(transf, CertificateOfDeposit):
+                miBalance = miBalance - transf.value()
+            else:
+                raise Exception("OPERACION NO VALIDA")
         return miBalance
 
 
@@ -414,7 +418,11 @@ class PortfolioTests(unittest.TestCase):
 
 
     def investmentNet(self,account):
-        pass
+        neto = 0
+        for transf in account.transactions():
+            if isinstance(transf, CertificateOfDeposit):
+                neto = neto + transf.value()
+        return neto
 
     def test22ShouldBeAbleToQueryInvestmentEarnings(self):
         account = ReceptiveAccount ()

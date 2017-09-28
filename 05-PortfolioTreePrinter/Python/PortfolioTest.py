@@ -48,9 +48,17 @@ class Transfer:
     def toAccount(self):
         return self._toAccount
 
+    def valorSegunCuentaOrigen(self, ctaOrigen):
+        if ctaOrigen == self.fromAccount():
+            return ( (-1) * self.value() )
+        else:
+            return self.value()
+
     @classmethod
     def registerFor(cls, value, fromAccount, toAccount):
-        pass
+        unaTrasferencia = cls(value,fromAccount,toAccount)
+        fromAccount.register(unaTrasferencia)
+        toAccount.register(unaTrasferencia)
 
 class SummarizingAccount:
 
@@ -79,9 +87,9 @@ class ReceptiveAccount(SummarizingAccount):
             if isinstance(transf, Withdraw):
                 miBalance = miBalance - transf.value()
             if isinstance(transf, Transfer):
-                if self == transf.toAccount():
+                if self == transf.fromAccount():
                     miBalance = miBalance - transf.value()
-                elif self == transf.fromAccount():
+                elif self == transf.toAccount():
                     miBalance = miBalance + transf.value()
         return miBalance
 
@@ -367,7 +375,7 @@ class PortfolioTests(unittest.TestCase):
             elif isinstance(transaccion, Withdraw):
                 lineas.append( "Extraccion por {}".format(transaccion.value()) )
             elif isinstance(transaccion, Transfer):
-                lineas.append( "Transferencia por -{}".format(transaccion.value()) )
+                lineas.append( "Transferencia por {}".format( transaccion.valorSegunCuentaOrigen(fromAccount) ) )
             else:
                 raise Exception("OPERACION NO VALIDA")
         return lineas
@@ -389,7 +397,7 @@ class PortfolioTests(unittest.TestCase):
         balance = 0
         for transaccion in account.transactions():
             if isinstance(transaccion, Transfer):
-                balance = balance + transaccion.value()
+                balance = balance + transaccion.valorSegunCuentaOrigen(account)
         return balance
 
     def test21CertificateOfDepositShouldWithdrawInvestmentValue(self):

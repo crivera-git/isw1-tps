@@ -380,6 +380,9 @@ class PortfolioTests(unittest.TestCase):
                 lineas.append( "Extraccion por {}".format(transaccion.value()) )
             elif isinstance(transaccion, Transfer):
                 lineas.append( "Transferencia por {}".format( transaccion.valorSegunCuentaOrigen(fromAccount) ) )
+            elif isinstance(transaccion, CertificateOfDeposit):
+                lineas.append( "Plazo fijo por {} durante {} dias a una tna de {}".format( \
+                transaccion.value(), transaccion.numberOfDays(), transaccion.tna() ) )
             else:
                 raise Exception("OPERACION NO VALIDA")
         return lineas
@@ -435,7 +438,11 @@ class PortfolioTests(unittest.TestCase):
         self.assertEquals(investmentEarnings,self.investmentEarnings(account))
 
     def investmentEarnings(self, account):
-        pass
+        ganancia = 0
+        for transf in account.transactions():
+            if isinstance(transf, CertificateOfDeposit):
+                ganancia = ganancia + transf.earnings()
+        return ganancia
 
     def test23AccountSummaryShouldWorkWithCertificateOfDeposit(self):
         fromAccount = ReceptiveAccount ()

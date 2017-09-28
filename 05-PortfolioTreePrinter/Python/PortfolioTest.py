@@ -39,6 +39,9 @@ class Transfer:
         self._fromAccount = fromAccount
         self._toAccount = toAccount
 
+    def value(self):
+        return self._value
+
     @classmethod
     def registerFor(cls, value, fromAccount, toAccount):
         pass
@@ -338,21 +341,18 @@ class PortfolioTests(unittest.TestCase):
 
 
     def accountSummaryLines(self,fromAccount):
-        pass
-        '''
         lineas = []
         for transaccion in fromAccount.transactions():
             if isinstance(transaccion, Deposit):
                 lineas.append( "Deposito por {}".format(transaccion.value()) )
             elif isinstance(transaccion, Withdraw):
                 lineas.append( "Extraccion por {}".format(transaccion.value()) )
-            elif isinstance(transaccion, CertificateOfDeposit):
-                lineas.append(" hola ")
-                #lineas.append( "Transferencia por -{}".format(transaccion._value()) )
+            elif isinstance(transaccion, Transfer):
+                lineas.append( "Transferencia por -{}".format(transaccion.value()) )
             else:
                 raise Exception("OPERACION NO VALIDA")
         return lineas
-        '''
+
 
     def test20ShouldBeAbleToBeQueryTransferNet(self):
         fromAccount = ReceptiveAccount ()
@@ -367,7 +367,11 @@ class PortfolioTests(unittest.TestCase):
         self.assertEquals(-150.0,self.accountTransferNet(toAccount))
 
     def accountTransferNet(self, account):
-        pass
+        balance = 0
+        for transaccion in account.transactions():
+            if isinstance(transaccion, Transfer):
+                balance = balance + transaccion.value()
+        return balance
 
     def test21CertificateOfDepositShouldWithdrawInvestmentValue(self):
         account = ReceptiveAccount ()

@@ -3,15 +3,16 @@ import unittest
 from collections import deque
 class ElevatorController:
     ''' COLABORADORES INTERNOS '''
-    _idle = True
-    _cabina_detenida = True
-    _cabina_puerta_abierta = True
-    _cabina_puerta_abriendo = False
-    _cabina_puerta_cerrada = False
-    _cabina_puerta_cerrando = False
-    _esperando_por_personas = False
-    _piso_de_cabina = 0
-    _llamados = deque()
+    def __init__(self):
+        self._idle = True
+        self._cabina_detenida = True
+        self._cabina_puerta_abierta = True
+        self._cabina_puerta_abriendo = False
+        self._cabina_puerta_cerrada = False
+        self._cabina_puerta_cerrando = False
+        self._esperando_por_personas = False
+        self._piso_de_cabina = 0
+        self._llamados = deque()
 
     ''' METODOS DE CLASE '''
 

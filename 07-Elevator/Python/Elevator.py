@@ -47,8 +47,12 @@ class ElevatorController:
         self._cabina_puerta_cerrando = True
         self._cabina_puerta_cerrada = False
     def cabinDoorClosed(self):
-        if self.isIdle():
-            raise ElevatorEmergency("Sensor de cabina desincronizado")
+        if self._idle:
+            raise ElevatorEmergency("Sensor de puerta desincronizado")
+        if self._cabina_puerta_cerrada:
+            raise ElevatorEmergency("Sensor de puerta desincronizado")
+        if self._cabina_puerta_abriendo:
+            raise ElevatorEmergency("Sensor de puerta desincronizado")
         self.empezar_a_cerrar_puerta()
         self._cabina_puerta_cerrando = False
         self._cabina_puerta_cerrada = True
@@ -59,8 +63,9 @@ class ElevatorController:
         self._cabina_detenida = True
         self.empezar_a_cerrar_puerta()
     def cabinOnFloor(self,numero_de_piso):
-        if self.isCabinStopped():
-            raise ElevatorEmergency("Sensor de cabina desincronizado")
+        if len(self._llamados)==1:
+            if self.isCabinStopped():
+                raise ElevatorEmergency("Sensor de cabina desincronizado")
         if numero_de_piso!=self._piso_de_cabina+1:
             raise ElevatorEmergency("Sensor de cabina desincronizado")
 

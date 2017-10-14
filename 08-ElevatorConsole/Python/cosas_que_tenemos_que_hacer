@@ -1,0 +1,5 @@
+Debemos hacer que cada acción interna de ElevatorController "notifique" la
+acción que realiza y que _lines sea el listener de TODAS las acciones. Pero en
+los test, ElevatorControllerConsole solo tiene que hacer de listener de los
+eventos "Puerta Cerrandose" "Puerta Cerrada" "Cabina Moviendose"
+"Cabina Detenida" "Puerta Abriendose"

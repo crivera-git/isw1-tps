@@ -411,13 +411,13 @@ class ElevatorController:
         # self._cabinIsMovingObservers = []
         # self._cabinDoorIsOpeningObservers = []
         # self._cabinDoorIsClosedObservers = []
-    
+
 
 
     # def suscribirObservadores(self,listaObservadores):
     #     for obs in listaObservadores:
     #         self.agregarObservador(obs)
-    
+
 
     # suponete que obs sea cabinDoorOpened lo que haria la funcion agregarObservador seria
     # def agregarObservador(self,obs):
@@ -439,7 +439,8 @@ class ElevatorController:
         self._cabinDoorState = CabinDoorOpenedState(self)
         self._lines.append("Puerta Abierta")
         self.informarCambioDeEstadoAMisObservadores()
-        #self.informarCambioDeEstadoAMisObservadores(self._cabinDoorIsOpenedObservers)
+        #self.informarCambioDeEstadoAMisObservadores(self._cabinDoorIsOpenedObservers)   <----- esto se escribe:
+        #self._cabinDoorIsOpenedObservers.informarCambioDeEstadoAMisObservadores()
 
     def cabinDoorIsClosing(self):
         self._cabinDoorState = CabinDoorClosingState(self)

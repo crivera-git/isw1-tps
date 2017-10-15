@@ -403,6 +403,27 @@ class ElevatorController:
         self._cabinFloorNumber = 0
         self._floorsToGo = []
 
+
+        #Observadores de cada cambio de estado
+        # self._cabinDoorIsOpenedObservers = []
+        # self._cabinDoorIsClosingObservers = []
+        # self._cabinIsStoppedObservers = []
+        # self._cabinIsMovingObservers = []
+        # self._cabinDoorIsOpeningObservers = []
+        # self._cabinDoorIsClosedObservers = []
+    
+
+
+    # def suscribirObservadores(self,listaObservadores):
+    #     for obs in listaObservadores:
+    #         self.agregarObservador(obs)
+    
+
+    # suponete que obs sea cabinDoorOpened lo que haria la funcion agregarObservador seria
+    # def agregarObservador(self,obs):
+    #     self._cabinDoorIsOpenedObservers.append(obs)
+
+
     def suscribirALaMiListaDeModificaciones(self, objeto):
         self._observers.append(objeto)
 
@@ -418,26 +439,31 @@ class ElevatorController:
         self._cabinDoorState = CabinDoorOpenedState(self)
         self._lines.append("Puerta Abierta")
         self.informarCambioDeEstadoAMisObservadores()
+        #self.informarCambioDeEstadoAMisObservadores(self._cabinDoorIsOpenedObservers)
 
     def cabinDoorIsClosing(self):
         self._cabinDoorState = CabinDoorClosingState(self)
         self._lines.append("Puerta Cerrandose")
         self.informarCambioDeEstadoAMisObservadores()
+        #self.informarCambioDeEstadoAMisObservadores(self._cabinDoorIsClosingObservers)
 
     def cabinIsStopped(self):
         self._cabinState = CabinStoppedState(self)
         self._lines.append("Cabina Detenida")
         self.informarCambioDeEstadoAMisObservadores()
+        #self.informarCambioDeEstadoAMisObservadores(self._cabinIsStoppedObservers)
 
     def cabinIsMoving(self):
     	self._cabinState = CabinMovingState(self)
     	self._lines.append("Cabina Moviendose")
         self.informarCambioDeEstadoAMisObservadores()
+        #self.informarCambioDeEstadoAMisObservadores(self._cabinIsMovingObservers)
 
     def cabinDoorIsOpening(self):
         self._cabinDoorState = CabinDoorOpeningState(self)
         self._lines.append("Puerta Abriendose")
         self.informarCambioDeEstadoAMisObservadores()
+        #self.informarCambioDeEstadoAMisObservadores(self._cabinDoorIsOpeningObservers)
 
     def cabinDoorIsClosed(self):
         self._cabinDoorState = CabinDoorClosedState(self)

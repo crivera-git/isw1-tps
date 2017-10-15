@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #
 # Developed by 10Pines SRL
 # License:
@@ -393,8 +394,8 @@ class ElevatorControllerIsWorkingState(ElevatorControllerState):
 
 class ElevatorController:
     def __init__(self):
-    	self._lines = []
-        # Me tengo que suscribir a los mensajes de los eventos
+        self._lines = []
+        self._observers = []
         self.controllerIsIdle()
         self.cabinIsStopped()
         self.cabinDoorIsOpened()
@@ -402,38 +403,46 @@ class ElevatorController:
         self._cabinFloorNumber = 0
         self._floorsToGo = []
 
+    def suscribirALaMiListaDeModificaciones(self, objeto):
+        self._observers.append(objeto)
+
+    def informarCambioDeEstadoAMisObservadores(self):
+        for observer in self._observers:
+            observer.nuevoEstado( self._lines[len(self._lines)-1] )
+
     def Lines(self):
     	return self._lines
 
+    # Nos falta una abstracción porque hay codigo repetido
     def cabinDoorIsOpened(self):
         self._cabinDoorState = CabinDoorOpenedState(self)
         self._lines.append("Puerta Abierta")
-        # En lugar de un append a _lines tengo que hacer un "notify"
+        self.informarCambioDeEstadoAMisObservadores()
 
     def cabinDoorIsClosing(self):
         self._cabinDoorState = CabinDoorClosingState(self)
         self._lines.append("Puerta Cerrandose")
-        # En lugar de un append a _lines tengo que hacer un "notify"
+        self.informarCambioDeEstadoAMisObservadores()
 
     def cabinIsStopped(self):
         self._cabinState = CabinStoppedState(self)
         self._lines.append("Cabina Detenida")
-        # En lugar de un append a _lines tengo que hacer un "notify"
+        self.informarCambioDeEstadoAMisObservadores()
 
     def cabinIsMoving(self):
     	self._cabinState = CabinMovingState(self)
     	self._lines.append("Cabina Moviendose")
-        # En lugar de un append a _lines tengo que hacer un "notify"
+        self.informarCambioDeEstadoAMisObservadores()
 
     def cabinDoorIsOpening(self):
         self._cabinDoorState = CabinDoorOpeningState(self)
         self._lines.append("Puerta Abriendose")
-        # En lugar de un append a _lines tengo que hacer un "notify"
+        self.informarCambioDeEstadoAMisObservadores()
 
     def cabinDoorIsClosed(self):
         self._cabinDoorState = CabinDoorClosedState(self)
         self._lines.append("Puerta Cerrada")
-        # En lugar de un append a _lines tengo que hacer un "notify"
+        self.informarCambioDeEstadoAMisObservadores()
 
     def seteoEstadoInicial(self):
         self._state = ElevatorControllerIdleState(self)

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #
 # Developed by 10Pines SRL
 # License:
@@ -10,16 +11,21 @@
 import unittest
 from ElevatorController import ElevatorController
 
-# Este tipo es el sujeto
+# El ElevatorControllerConsole va a observar lo que haga el elevatorController.
+# Para hacer esto, el se debe "suscribir" a la lista de observadores.
 class ElevatorControllerConsole:
     def __init__(self,elevatorController):
         self._elevator = elevatorController
         self._listeners = []
         self._mensajes = []
-        # Me suscribo a los mensajes de los eventos
+        # Me suscribo a los mensajes que envia elevatorController.
+        elevatorController.suscribirALaMiListaDeModificaciones(self)
 
     def lines(self):
         return self._mensajes
+
+    def nuevoEstado(self, objeto):
+        self._mensajes.append(objeto)
 
 class ElevatorControllerStatusView:
     def __init__(self,elevatorController):

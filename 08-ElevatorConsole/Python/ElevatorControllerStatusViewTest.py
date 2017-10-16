@@ -13,19 +13,54 @@ from ElevatorController import ElevatorController
 
 # El ElevatorControllerConsole va a observar lo que haga el elevatorController.
 # Para hacer esto, el se debe "suscribir" a la lista de observadores.
-class ElevatorControllerConsole:
+
+
+# No se si esta es la idea del ejercicio: poder agregar consolas que tengan comportamientos particulares sin tener que tocar nada
+# La idea es tener una consola generica y que cada consola en particular haga lo que quiera cuando 
+#le lleguen las noticias de los cambios
+
+class Consola:
+
+    def visitCabinDoorClosingState(self,est):
+        self.shouldBeImplementedBySubclass()
+    def visitCabinDoorOpeningState(self,est):
+        self.shouldBeImplementedBySubclass()
+    def visitCabinDoorOpenedState(self,est):
+        self.shouldBeImplementedBySubclass()
+    def visitCabinDoorClosedState(self,est):
+        self.shouldBeImplementedBySubclass()
+    def visitCabinStoppedState(self,est):
+        self.shouldBeImplementedBySubclass()
+    def visitCabinMovingState(self,est):
+        self.shouldBeImplementedBySubclass()
+
+# Consola que a medida que le llegan los estados "los guarda en un log"
+class ElevatorControllerConsole(Consola):
     def __init__(self,elevatorController):
         self._elevator = elevatorController
-        self._listeners = []
+        elevatorController.suscribirALaMiListaDeModificaciones(self)
+        # self._listeners = []
         self._mensajes = []
         # Me suscribo a los mensajes que envia elevatorController.
-        elevatorController.suscribirALaMiListaDeModificaciones(self)
+        # elevatorController.suscribirALaMiListaDeModificaciones(self)
+    def visitCabinDoorClosingState(self,est):
+        self._mensajes.append("Puerta Cerrandose")
+    def visitCabinDoorOpeningState(self,est):
+        self._mensajes.append("Puerta Abriendose")
+    def visitCabinDoorOpenedState(self,est):
+        self._mensajes.append("Puerta Abierta")
+    def visitCabinDoorClosedState(self,est):
+        self._mensajes.append("Puerta Cerrada")
+    def visitCabinStoppedState(self,est):
+        self._mensajes.append("Cabina Detenida")
+    def visitCabinMovingState(self,est):
+        self._mensajes.append("Cabina Moviendose")
 
     def lines(self):
         return self._mensajes
 
-    def nuevoEstado(self, objeto):
-        self._mensajes.append(objeto)
+    # def nuevoEstado(self, objeto):
+    #     self._mensajes.append(objeto)
 
 class ElevatorControllerStatusView:
     def __init__(self,elevatorController):

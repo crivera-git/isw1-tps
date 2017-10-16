@@ -30,7 +30,7 @@ class CabinDoorState:
     def isClosed(self):
         self.shouldBeImplementedBySubclass()
     def dameEstado(self):
-    	self.shouldBeImplementedBySubclass()
+        self.shouldBeImplementedBySubclass()
 
     def cabinDoorClosedWhenWorkingAndCabinStopped(self):
         self.shouldBeImplementedBySubclass()
@@ -137,7 +137,7 @@ class CabinDoorOpeningState(CabinDoorState):
         self.elevatorController = elevatorController
 
     def dameEstado(self):
-    	return "Opening"
+        return "Opening"
     def accept(self,aVisitor):
         return aVisitor.visitCabinDoorOpeningState(self)
 
@@ -167,7 +167,7 @@ class CabinState:
     def accept(self,aVisitor):
         self.shouldBeImplementedBySubclass()
     def dameEstado(self):
-    	self.shouldBeImplementedBySubclass()
+        self.shouldBeImplementedBySubclass()
 
 
 
@@ -206,7 +206,7 @@ class CabinStoppedState(CabinState):
     def accept(self,aVisitor):
         return aVisitor.visitCabinStoppedState(self)
     def dameEstado(self):
-    	return "Stopped"
+        return "Stopped"
 
     def cabinDoorClosedWhenWorking(self):
         self.elevatorController.cabinDoorClosedWhenWorkingAndCabinStopped();
@@ -411,13 +411,13 @@ class ElevatorController:
         # self._cabinIsMovingObservers = []
         # self._cabinDoorIsOpeningObservers = []
         # self._cabinDoorIsClosedObservers = []
-
+    
 
 
     # def suscribirObservadores(self,listaObservadores):
     #     for obs in listaObservadores:
     #         self.agregarObservador(obs)
-
+    
 
     # suponete que obs sea cabinDoorOpened lo que haria la funcion agregarObservador seria
     # def agregarObservador(self,obs):
@@ -427,49 +427,60 @@ class ElevatorController:
     def suscribirALaMiListaDeModificaciones(self, objeto):
         self._observers.append(objeto)
 
-    def informarCambioDeEstadoAMisObservadores(self):
+    def informarCambioDeEstadoAMisObservadores(self,estado):
         for observer in self._observers:
-            observer.nuevoEstado( self._lines[len(self._lines)-1] )
+            estado.accept(observer)
+
+    # def informarCambioDeEstadoAMisObservadores(self):
+    #     for observer in self._observers:
+    #         observer.nuevoEstado( self._lines[len(self._lines)-1] )
 
     def Lines(self):
-    	return self._lines
+        return self._lines
 
     # Nos falta una abstracción porque hay codigo repetido
+    #-- Cambios de estados:
+    #--CabinDoor: 
     def cabinDoorIsOpened(self):
         self._cabinDoorState = CabinDoorOpenedState(self)
-        self._lines.append("Puerta Abierta")
-        self.informarCambioDeEstadoAMisObservadores()
-        #self.informarCambioDeEstadoAMisObservadores(self._cabinDoorIsOpenedObservers)   <----- esto se escribe:
-        #self._cabinDoorIsOpenedObservers.informarCambioDeEstadoAMisObservadores()
+        #self._lines.append("Puerta Abierta")
+        # self.informarCambioDeEstadoAMisObservadores()
+        #self.informarCambioDeEstadoAMisObservadores(self._cabinDoorIsOpenedObservers)
+        self.informarCambioDeEstadoAMisObservadores(self._cabinDoorState)
 
     def cabinDoorIsClosing(self):
         self._cabinDoorState = CabinDoorClosingState(self)
-        self._lines.append("Puerta Cerrandose")
-        self.informarCambioDeEstadoAMisObservadores()
+        #self._lines.append("Puerta Cerrandose")
+        #self.informarCambioDeEstadoAMisObservadores()
         #self.informarCambioDeEstadoAMisObservadores(self._cabinDoorIsClosingObservers)
-
-    def cabinIsStopped(self):
-        self._cabinState = CabinStoppedState(self)
-        self._lines.append("Cabina Detenida")
-        self.informarCambioDeEstadoAMisObservadores()
-        #self.informarCambioDeEstadoAMisObservadores(self._cabinIsStoppedObservers)
-
-    def cabinIsMoving(self):
-    	self._cabinState = CabinMovingState(self)
-    	self._lines.append("Cabina Moviendose")
-        self.informarCambioDeEstadoAMisObservadores()
-        #self.informarCambioDeEstadoAMisObservadores(self._cabinIsMovingObservers)
+        self.informarCambioDeEstadoAMisObservadores(self._cabinDoorState)
 
     def cabinDoorIsOpening(self):
         self._cabinDoorState = CabinDoorOpeningState(self)
-        self._lines.append("Puerta Abriendose")
-        self.informarCambioDeEstadoAMisObservadores()
+        #self._lines.append("Puerta Abriendose")
+        #self.informarCambioDeEstadoAMisObservadores()
         #self.informarCambioDeEstadoAMisObservadores(self._cabinDoorIsOpeningObservers)
+        self.informarCambioDeEstadoAMisObservadores(self._cabinDoorState)
 
     def cabinDoorIsClosed(self):
         self._cabinDoorState = CabinDoorClosedState(self)
-        self._lines.append("Puerta Cerrada")
-        self.informarCambioDeEstadoAMisObservadores()
+        #self._lines.append("Puerta Cerrada")
+        #self.informarCambioDeEstadoAMisObservadores()
+        self.informarCambioDeEstadoAMisObservadores(self._cabinDoorState)
+    #--Cabin:
+    def cabinIsStopped(self):
+        self._cabinState = CabinStoppedState(self)
+        #self._lines.append("Cabina Detenida")
+        #self.informarCambioDeEstadoAMisObservadores()
+        #self.informarCambioDeEstadoAMisObservadores(self._cabinIsStoppedObservers)
+        self.informarCambioDeEstadoAMisObservadores(self._cabinState)
+
+    def cabinIsMoving(self):
+        self._cabinState = CabinMovingState(self)
+        #self._lines.append("Cabina Moviendose")
+        #self.informarCambioDeEstadoAMisObservadores()
+        #self.informarCambioDeEstadoAMisObservadores(self._cabinIsMovingObservers)
+        self.informarCambioDeEstadoAMisObservadores(self._cabinState)
 
     def seteoEstadoInicial(self):
         self._state = ElevatorControllerIdleState(self)
@@ -498,7 +509,7 @@ class ElevatorController:
 
     #Door state
     def doorState(self):
-    	return self._cabinDoorState.dameEstado()
+        return self._cabinDoorState.dameEstado()
     def isCabinDoorOpened(self):
         return self._cabinDoorState.isOpened()
 
@@ -513,7 +524,7 @@ class ElevatorController:
 
     #Cabin state
     def cabinState(self):
-    	return self._cabinState.dameEstado()
+        return self._cabinState.dameEstado()
     def cabinFloorNumber(self):
         return self._cabinFloorNumber
 

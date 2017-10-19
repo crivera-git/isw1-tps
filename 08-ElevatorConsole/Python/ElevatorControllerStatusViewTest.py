@@ -11,16 +11,14 @@
 import unittest
 from ElevatorController import ElevatorController
 
-# El ElevatorControllerConsole va a observar lo que haga el elevatorController.
-# Para hacer esto, el se debe "suscribir" a la lista de observadores.
-
-
-# No se si esta es la idea del ejercicio: poder agregar consolas que tengan comportamientos particulares sin tener que tocar nada
-# La idea es tener una consola generica y que cada consola en particular haga lo que quiera cuando 
-#le lleguen las noticias de los cambios
-
-class Consola:
-
+class Observer:
+    def __init__(self,sujeto):
+        sujeto.registrarObservador(self)
+    def update(self,state):
+        self.shouldBeImplementedBySubclass()
+class ElevatorControllerObserver(Observer):
+    def update(self,state):
+        state.accept(self)
     def visitCabinDoorClosingState(self,est):
         self.shouldBeImplementedBySubclass()
     def visitCabinDoorOpeningState(self,est):
@@ -34,15 +32,11 @@ class Consola:
     def visitCabinMovingState(self,est):
         self.shouldBeImplementedBySubclass()
 
-# Consola que a medida que le llegan los estados "los guarda en un log"
-class ElevatorControllerConsole(Consola):
+
+class ElevatorControllerConsole(ElevatorControllerObserver):
     def __init__(self,elevatorController):
-        self._elevator = elevatorController
-        elevatorController.suscribirALaMiListaDeModificaciones(self)
-        # self._listeners = []
+        Observer.__init__(self,elevatorController)
         self._mensajes = []
-        # Me suscribo a los mensajes que envia elevatorController.
-        # elevatorController.suscribirALaMiListaDeModificaciones(self)
     def visitCabinDoorClosingState(self,est):
         self._mensajes.append("Puerta Cerrandose")
     def visitCabinDoorOpeningState(self,est):
@@ -59,16 +53,25 @@ class ElevatorControllerConsole(Consola):
     def lines(self):
         return self._mensajes
 
-    # def nuevoEstado(self, objeto):
-    #     self._mensajes.append(objeto)
+class ElevatorControllerStatusView(ElevatorControllerObserver):
 
-class ElevatorControllerStatusView:
-    def __init__(self,elevatorController):
-        self._elevator = elevatorController
+    def visitCabinDoorClosingState(self,est):
+        self._cabinDoorState = "Closing"
+    def visitCabinDoorOpeningState(self,est):
+        self._cabinDoorState = "Opening"
+    def visitCabinDoorOpenedState(self,est):
+        self._cabinDoorState = "Opened"
+    def visitCabinDoorClosedState(self,est):
+        self._cabinDoorState = "Closed"
+    def visitCabinStoppedState(self,est):
+        self._cabinState = "Stopped"
+    def visitCabinMovingState(self,est):
+        self._cabinState = "Moving"
     def cabinStateFieldModel(self):
-        return self._elevator.cabinState()
+        return self._cabinState
     def cabinDoorStateFieldModel(self):
-        return self._elevator.doorState()
+        return self._cabinDoorState
+    
 
 class ElevatorControllerViewTest(unittest.TestCase):
 

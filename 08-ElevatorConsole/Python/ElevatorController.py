@@ -379,7 +379,7 @@ class ElevatorControllerIsWorkingState(ElevatorControllerState):
     def closeCabinDoor(self):
         self.elevatorController.closeCabinDoorWhenWorking()
 
-class Notificador:
+class ObserversManager:
 
     def __init__(self):
         self.observadores = []
@@ -398,7 +398,7 @@ class ElevatorController:
     def __init__(self):
         self._lines = []
         self._observers = []
-        self._notificador = Notificador()
+        self._observersManager = ObserversManager()
         self.controllerIsIdle()
         self.cabinIsStopped()
         self.cabinDoorIsOpened()
@@ -408,33 +408,33 @@ class ElevatorController:
         
 
     def registrarObservador(self, observador):
-        self._notificador.registrar(observador)
+        self._observersManager.registrar(observador)
 
     #-- Cambios de estados:
     #--CabinDoor: 
     def cabinDoorIsOpened(self):
         self._cabinDoorState = CabinDoorOpenedState(self)
-        self._notificador.notificar_cambio_estado(self._cabinDoorState)
+        self._observersManager.notificar_cambio_estado(self._cabinDoorState)
 
     def cabinDoorIsClosing(self):
         self._cabinDoorState = CabinDoorClosingState(self)
-        self._notificador.notificar_cambio_estado(self._cabinDoorState)
+        self._observersManager.notificar_cambio_estado(self._cabinDoorState)
 
     def cabinDoorIsOpening(self):
         self._cabinDoorState = CabinDoorOpeningState(self)
-        self._notificador.notificar_cambio_estado(self._cabinDoorState)
+        self._observersManager.notificar_cambio_estado(self._cabinDoorState)
 
     def cabinDoorIsClosed(self):
         self._cabinDoorState = CabinDoorClosedState(self)
-        self._notificador.notificar_cambio_estado(self._cabinDoorState)
+        self._observersManager.notificar_cambio_estado(self._cabinDoorState)
     #--Cabin:
     def cabinIsStopped(self):
         self._cabinState = CabinStoppedState(self)
-        self._notificador.notificar_cambio_estado(self._cabinState)
+        self._observersManager.notificar_cambio_estado(self._cabinState)
 
     def cabinIsMoving(self):
         self._cabinState = CabinMovingState(self)
-        self._notificador.notificar_cambio_estado(self._cabinState)
+        self._observersManager.notificar_cambio_estado(self._cabinState)
 
     def seteoEstadoInicial(self):
         self._state = ElevatorControllerIdleState(self)

@@ -43,43 +43,31 @@ class Carrito:
 class Cajero:
 	ERROR_CARRITO_VACIO = "El carrito provisto está vacio"
 	ERROR_COMPORTAMIENTO_NO_MODELADO = "Se produjo una acción no contemplada."
-	def __init__(self,catalogo):
-		self._catalogoConPrecios = catalogo
-		self._merchantProcesor = MerchanProcesor()
-	def dameMerchantProcesor(self):
-		return self._merchantProcesor
-	def checkOut(self, carrito, tarjeta):
-		if carrito.estaVacio():
-			raise Exception( self.ERROR_CARRITO_VACIO )
-		elif self.elCatalogoDelCarritoEsValido(carrito):
-			self._merchantProcesor.validarTarjetaParaLaCompra(tarjeta)
-			monto = self.calcularMontoDeLaCompra(carrito)
-			self._merchantProcesor.cobrarAUnaTarjeta(tarjeta)
-		else:
-			raise Exception( self.ERROR_COMPORTAMIENTO_NO_MODELADO )
-	def elCatalogoDelCarritoEsValido(self, carrito):
-		respuesta = True
-		for producto in carrito.dameCatalogo():
-			respuesta = respuesta and (producto in self._catalogoConPrecios)
-		return respuesta
-	def calcularMontoDeLaCompra(self, carrito):
-		monto = 0
-		for producto in carrito.dameProductos():
-			monto = monto + self._catalogoConPrecios[producto] * \
-			carrito.cantidadDeAparciones(producto)
-		return monto
-
-class MerchanProcesor():
 	ERROR_TARJETA_VENCIDA = "La tarjeta esta vencida."
 	def __init__(self):
 		pass
-	def validarTarjetaParaLaCompra(self, tarjeta):
-		if tarjeta.dameVecimiento() < datetime.today():
+	def validarTarjetaParaLaCompra(self, tarjeta, unaFecha):
+		if tarjeta.estaVencida(unaFecha):
 			raise Exception( self.ERROR_TARJETA_VENCIDA )
-		else:
-			return True
-	def cobrarAUnaTarjeta(self, tarjeta):
+	def cobrarAUnaTarjeta(self,tarjeta,fecha):
 		pass
+	def checkOut(self, carrito, tarjeta, unaFecha):
+		if carrito.estaVacio():
+			raise Exception( self.ERROR_CARRITO_VACIO )
+		elif not carrito.estaVacio():
+			self.validarTarjetaParaLaCompra(tarjeta, unaFecha)
+			monto = self.calcularMontoDeLaCompra(carrito)
+			self.cobrarAUnaTarjeta(tarjeta,monto)
+
+		else:
+			raise Exception( self.ERROR_COMPORTAMIENTO_NO_MODELADO )
+	def calcularMontoDeLaCompra(self, carrito):
+		monto = 0
+		for producto in carrito.dameProductos():
+			monto = monto + carrito.dameCatalogo()[producto] * \
+			carrito.cantidadDeAparciones(producto)
+		return monto
+
 
 class Tarjeta:
 	ERROR_OBJETO_INVALIDO = "Los parámetros no son correctos."
@@ -91,25 +79,60 @@ class Tarjeta:
 		if not self.guardaValidarObjeto():
 			raise Exception( self.ERROR_OBJETO_INVALIDO )
 	def guardaValidarObjeto(self):
-		return isinstance(self._vencimiento, datetime) and \
-		isinstance(self._expedicion, datetime) and \
-		(self._vencimiento > self._expedicion)
-	def dameVecimiento(self):
-		return self._vencimiento
+		return True
+		# return self._expedicion.esMenor(self._vencimiento)
+
+	def estaVencida(self, unaFecha):
+		respuesta = self._vencimiento.dameAnio() < unaFecha.dameAnio()
+		if self._vencimiento.dameAnio() == unaFecha.dameAnio():
+			respuesta = self._vencimiento.dameMes() < unaFecha.dameMes()
+		return respuesta
+
+class FechaMMAA:
+	def __init__(self, mes, anio):
+		self._mes = mes
+		self._anio = anio
+	def dameMes(self):
+		return self._mes
+	def dameAnio(self):
+		return self._anio
+	''' overload del operador < '''
+	# def esMenor(self, other):
+	# 	return (self._mes < other.dameMes()) and (self._anio < other.dameAnio())
+
+class MerchanProcesor():
+	ERROR_TARJETA_VENCIDA = "La tarjeta esta vencida."
+	def __init__(self):
+		pass
+	def validarTarjetaParaLaCompra(self, tarjeta):
+		# if tarjeta.dameVecimiento() < datetime.today():
+		# 	raise Exception( self.ERROR_TARJETA_VENCIDA )
+		# else:
+		return True
+	def cobrarAUnaTarjeta(self, tarjeta, monto):
+		pass
+
+class InterfazSalida:
+	def __init__(self):
+		pass
+
+
+
+
 
 class testXX(unittest.TestCase):
-	def test01CuandoCreoElCarritoEsteEstaVacio(self):
+	def testCuandoCreoElCarritoEsteEstaVacio(self):
 		unCatalogo = []
 		unCarrito = Carrito(unCatalogo)
 		self.assertTrue( unCarrito.estaVacio() )
-	def test02AgregoUnLibroAUnCarritoVacioYSoloContieneAEsteLibro(self):
+	def testAgregoUnLibroAUnCarritoVacioYSoloContieneAEsteLibro(self):
 		unElemento = "unProducto"
 		unCatalogo = [unElemento]
 		unCarrito = Carrito(unCatalogo)
 		unCarrito.agregarElemento(unElemento, 1)
 		self.assertEquals( 1, unCarrito.cantidadElementos() )
 		self.assertEquals( True, unCarrito.estaEnElCarrito(unElemento) )
-	def test03AgregoUnLibroQueNoPerteneceAlCatalogo(self):
+	def testAgregoUnLibroQueNoPerteneceAlCatalogo(self):
 		unElemento = 1
 		otroElemento = 2
 		unCatalogo = [unElemento]
@@ -121,7 +144,7 @@ class testXX(unittest.TestCase):
 			self.assertEquals( Carrito.ERROR_ELEMENTO_FUERA_DEL_CATALOGO, libroFueraCatalogo.message )
 			self.assertEquals( 0, unCarrito.cantidadElementos())
 	''' testing'''
-	def test04AgregarMuchoElementosFunciona(self):
+	def testAgregarMuchoElementosFunciona(self):
 		elemento1 = 1
 		elemento2 = 12
 		elemento3 = 13
@@ -139,7 +162,7 @@ class testXX(unittest.TestCase):
 		self.assertEquals( True, unCarrito.estaEnElCarrito(elemento2) )
 		self.assertEquals( True, unCarrito.estaEnElCarrito(elemento3) )
 		self.assertEquals( True, unCarrito.estaEnElCarrito(elemento4) )
-	def test05AgregoVariosDelMismoLibroYSuCantidadDeAparicionesEsCorrecta(self):
+	def testAgregoVariosDelMismoLibroYSuCantidadDeAparicionesEsCorrecta(self):
 		unElemento = 1
 		unCatalogo = [unElemento]
 		unCarrito = Carrito(unCatalogo)
@@ -149,7 +172,7 @@ class testXX(unittest.TestCase):
 		unCarrito.agregarElemento(unElemento,3)
 		self.assertEquals( 10, unCarrito.cantidadElementos() )
 		self.assertEquals( 10, unCarrito.cantidadDeAparciones(unElemento) )
-	def test06NoPuedoAgregarCantidadNoPositivaDeProductos(self):
+	def testNoPuedoAgregarCantidadNoPositivaDeProductos(self):
 			unElemento = 1
 			unCatalogo = [unElemento]
 			unCarrito = Carrito(unCatalogo)
@@ -159,7 +182,7 @@ class testXX(unittest.TestCase):
 			except Exception as apariconesInvalidas:
 				self.assertEquals( Carrito.ERROR_CANTIDAD_APARICIONES_NO_POSITIVO, apariconesInvalidas.message )
 				self.assertEquals( 0, unCarrito.cantidadElementos())
-	def test07NoPuedoAgregarCantidadNoEnteraDeProductos(self):
+	def testNoPuedoAgregarCantidadNoEnteraDeProductos(self):
 		unElemento = 1
 		unCatalogo = [unElemento]
 		unCarrito = Carrito(unCatalogo)
@@ -170,30 +193,23 @@ class testXX(unittest.TestCase):
 			self.assertEquals( Carrito.ERROR_CANTIDAD_APARICIONES_NO_ENTERA, apariconesInvalidas.message )
 			self.assertEquals( 0, unCarrito.cantidadElementos())
 	'''----------------------------Fin test carrito--------------------------'''
-	def test08NoPodemosCobrarAUnCarritoVacio(self):
-		unCatalogo = []
+	def testNoPodemosCobrarAUnCarritoVacio(self):
+		unCatalogo = {}
 		unCarrito = Carrito(unCatalogo)
-		unCatalogoConPrecios = {}
-		unCajero = Cajero(unCatalogoConPrecios)
-		expedicion = datetime.today() - timedelta(days=40)
-		vencimiento = datetime.today() - timedelta(days=10)
+		unCajero = Cajero()
+		expedicion = FechaMMAA(8, 2015)
+		vencimiento = FechaMMAA(8, 2017)
+		unaFecha = FechaMMAA(10, 2017)
 		tarjeta = Tarjeta(expedicion,vencimiento)
 		try:
-			unCajero.checkOut(unCarrito,tarjeta)
+			unCajero.checkOut(unCarrito,tarjeta,unaFecha)
 			self.fail()
 		except Exception as carritoVacio:
 			self.assertEquals( unCajero.ERROR_CARRITO_VACIO, carritoVacio.message )
-	def test09ElCatalogoDeElCajeroTieneTodosLosProductosQueTieneElCatalogoDelCarrito(self):
-		unCatalogo = ["Producto1",2,"Producto3"]
+	def testElMontoDeUnCarritoConUnProductoEsCorrecto(self):
+		unCatalogo = {"Producto1": 10, 2: 2,"Producto3":4,5 :2}
 		unCarrito = Carrito(unCatalogo)
-		unCatalogoConPrecios = {"Producto1": 1.3, 2: 2,"Producto3":4,5 :2}
-		unCajero = Cajero(unCatalogoConPrecios)
-		self.assertTrue( unCajero.elCatalogoDelCarritoEsValido(unCarrito) )
-	def test10ElMontoDeUnCarritoConUnProductoEsCorrecto(self):
-		unCatalogo = ["Producto1",2,"Producto3"]
-		unCarrito = Carrito(unCatalogo)
-		unCatalogoConPrecios = {"Producto1": 10, 2: 2,"Producto3":4,5 :2}
-		unCajero = Cajero(unCatalogoConPrecios)
+		unCajero = Cajero()
 
 		unCarrito.agregarElemento("Producto1", 1)#count 10
 
@@ -204,11 +220,10 @@ class testXX(unittest.TestCase):
 	en cuenta para los siguientes tests.'''
 	''' De todos modos no le encontramos el sentido de "mal" un algoritmo que es
 	sencillo solo para seguir el modelo de TDD. Cuál es el por qué de esto?'''
-	def test11ElMontoDeUnCarritoConMuchosElementosYMuchasAparciones(self):
-		unCatalogo = ["Producto1",2,"Producto3"]
+	def testElMontoDeUnCarritoConMuchosElementosYMuchasAparciones(self):
+		unCatalogo = {"Producto1": 10, 2: 2,"Producto3":4,5 :2}
 		unCarrito = Carrito(unCatalogo)
-		unCatalogoConPrecios = {"Producto1": 10, 2: 2,"Producto3":4,5 :2}
-		unCajero = Cajero(unCatalogoConPrecios)
+		unCajero = Cajero()
 
 		unCarrito.agregarElemento("Producto1", 5)#count 50
 		unCarrito.agregarElemento(2,5)#count 60
@@ -216,7 +231,7 @@ class testXX(unittest.TestCase):
 
 		self.assertEquals( 100, unCajero.calcularMontoDeLaCompra(unCarrito) )
 	''' Como hacer para testear la creación de objetos invalidos en python'''
-	def test12NoSePuedeCrearTarjetaInvalida(self):
+	def testNoSePuedeCrearTarjetaInvalida(self):
 		pass
 		# try:
 		# 	expedicion = datetime.today() - timedelta(days=40)
@@ -225,24 +240,39 @@ class testXX(unittest.TestCase):
 		# 	self.fail()
 		# except Exception as tarjetaInvalida:
 		# 	self.assertEquals( unaTarjeta.ERROR_OBJETO_INVALIDO, tarjetaInvalida.message )
-	def test13NoSePuedeComprarConUnaTarjetaVencida(self):
-		unCatalogo = ["Producto1",2,"Producto3"]
+	def testNoSePuedeComprarConUnaTarjetaVencida(self):
+		unCatalogo = {"Producto1": 10, 2: 2,"Producto3":4,5 :2}
 		unCarrito = Carrito(unCatalogo)
-		unCatalogoConPrecios = {"Producto1": 10, 2: 2,"Producto3":4,5 :2}
-		unCajero = Cajero(unCatalogoConPrecios)
-		expedicion = datetime.today() - timedelta(days=40)
-		vencimiento = datetime.today() - timedelta(days=10)
+		unCajero = Cajero()
+		expedicion = FechaMMAA(8, 2015)
+		vencimiento = FechaMMAA(8, 2017)
+		unaFecha = FechaMMAA(10, 2017)
 		unaTarjeta = Tarjeta(expedicion,vencimiento)
 
 		unCarrito.agregarElemento("Producto1",2)
 		try:
-			unCajero.checkOut(unCarrito, unaTarjeta)
+			unCajero.checkOut(unCarrito, unaTarjeta, unaFecha)
 			self.fail()
 		except Exception as tarjetaVencida:
-			self.assertEquals( unCajero.dameMerchantProcesor().ERROR_TARJETA_VENCIDA,\
+			self.assertEquals( unCajero.ERROR_TARJETA_VENCIDA,\
 			tarjetaVencida.message )
+	'''-------------------------fin test cajero------------------------------'''
+	def testNoSePuedeComprarConTarjetaRobada(self):
+		unCatalogo = {"Producto1": 10, 2: 2,"Producto3":4,5 :2}
+		unCarrito = Carrito(unCatalogo)
+		unCajero = Cajero()
+		expedicion = FechaMMAA(8, 2015)
+		vencimiento = FechaMMAA(8, 2017)
+		unaFecha = FechaMMAA(10, 2016)
+		unaTarjetaRobada = Tarjeta(expedicion,vencimiento)
 
-
+		unCarrito.agregarElemento("Producto1",2)
+		try:
+			unCajero.checkOut(unCarrito, unaTarjetaRobada, unaFecha)
+			self.fail()
+		except Exception as tarjetaRobada:
+			self.assertEquals( "Tarjeta Robada",\
+			tarjetaRobada.message )
 
 if __name__ == "__main__":
 	unittest.main()

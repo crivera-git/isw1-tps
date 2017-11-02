@@ -65,7 +65,7 @@ class Cajero:
 				raise Exception( self.ERROR_TARJETA_ROBADA)
 			if mpMessage == "Tarjeta Sin Credito" :
 				raise Exception( self.ERROR_TARJETA_SIN_CREDITO)
-			else:
+			if mpMessage == "Transaccion realizada":
 				self._salesBook.append(carrito) 
 		else:
 			raise Exception( self.ERROR_COMPORTAMIENTO_NO_MODELADO )
@@ -128,6 +128,7 @@ class MPSimulator():
 			return self.ERROR_TARJETA_ROBADA
 		if tarjeta.numero() == 5400000000000002:
 			return self.ERROR_TARJETA_SIN_CREDITO
+		return "Transaccion realizada"
 
 class InterfazSalida:
 	def __init__(self):

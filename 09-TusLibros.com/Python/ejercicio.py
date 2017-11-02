@@ -44,8 +44,11 @@ class Cajero:
 	ERROR_CARRITO_VACIO = "El carrito provisto está vacio"
 	ERROR_COMPORTAMIENTO_NO_MODELADO = "Se produjo una acción no contemplada."
 	ERROR_TARJETA_VENCIDA = "La tarjeta esta vencida."
+	ERROR_TARJETA_ROBADA = "Tarjeta Robada"
+	ERROR_TARJETA_SIN_CREDITO = "Tarjeta Sin Credito"
 	def __init__(self):
-		pass
+		self._mpSimulator = MPSimulator()
+		self._salesBook = []
 	def validarTarjetaParaLaCompra(self, tarjeta, unaFecha):
 		if tarjeta.estaVencida(unaFecha):
 			raise Exception( self.ERROR_TARJETA_VENCIDA )
@@ -57,8 +60,13 @@ class Cajero:
 		elif not carrito.estaVacio():
 			self.validarTarjetaParaLaCompra(tarjeta, unaFecha)
 			monto = self.calcularMontoDeLaCompra(carrito)
-			self.cobrarAUnaTarjeta(tarjeta,monto)
-
+			mpMessage = self._mpSimulator.cobrarAUnaTarjeta(tarjeta,monto)
+			if mpMessage == "Tarjeta Robada" :
+				raise Exception( self.ERROR_TARJETA_ROBADA)
+			if mpMessage == "Tarjeta Sin Credito" :
+				raise Exception( self.ERROR_TARJETA_SIN_CREDITO)
+			else:
+				self._salesBook.append(carrito) 
 		else:
 			raise Exception( self.ERROR_COMPORTAMIENTO_NO_MODELADO )
 	def calcularMontoDeLaCompra(self, carrito):
@@ -67,13 +75,15 @@ class Cajero:
 			monto = monto + carrito.dameCatalogo()[producto] * \
 			carrito.cantidadDeAparciones(producto)
 		return monto
-
+	def ventas(self):
+		return self._salesBook
 
 class Tarjeta:
 	ERROR_OBJETO_INVALIDO = "Los parámetros no son correctos."
-	def __init__(self,expedicion,vencimiento):
+	def __init__(self,expedicion,vencimiento,numero):
 		self._expedicion = expedicion
 		self._vencimiento = vencimiento
+		self._numero = numero
 		self.validarQueElObjetoSeaValido()
 	def validarQueElObjetoSeaValido(self):
 		if not self.guardaValidarObjeto():
@@ -87,6 +97,8 @@ class Tarjeta:
 		if self._vencimiento.dameAnio() == unaFecha.dameAnio():
 			respuesta = self._vencimiento.dameMes() < unaFecha.dameMes()
 		return respuesta
+	def numero(self):
+		return self._numero
 
 class FechaMMAA:
 	def __init__(self, mes, anio):
@@ -100,8 +112,10 @@ class FechaMMAA:
 	# def esMenor(self, other):
 	# 	return (self._mes < other.dameMes()) and (self._anio < other.dameAnio())
 
-class MerchanProcesor():
+class MPSimulator():
 	ERROR_TARJETA_VENCIDA = "La tarjeta esta vencida."
+	ERROR_TARJETA_ROBADA = "Tarjeta Robada"
+	ERROR_TARJETA_SIN_CREDITO = "Tarjeta Sin Credito"
 	def __init__(self):
 		pass
 	def validarTarjetaParaLaCompra(self, tarjeta):
@@ -110,7 +124,10 @@ class MerchanProcesor():
 		# else:
 		return True
 	def cobrarAUnaTarjeta(self, tarjeta, monto):
-		pass
+		if tarjeta.numero() == 5400000000000001:
+			return self.ERROR_TARJETA_ROBADA
+		if tarjeta.numero() == 5400000000000002:
+			return self.ERROR_TARJETA_SIN_CREDITO
 
 class InterfazSalida:
 	def __init__(self):
@@ -200,7 +217,7 @@ class testXX(unittest.TestCase):
 		expedicion = FechaMMAA(8, 2015)
 		vencimiento = FechaMMAA(8, 2017)
 		unaFecha = FechaMMAA(10, 2017)
-		tarjeta = Tarjeta(expedicion,vencimiento)
+		tarjeta = Tarjeta(expedicion,vencimiento,5400000000000001)
 		try:
 			unCajero.checkOut(unCarrito,tarjeta,unaFecha)
 			self.fail()
@@ -247,7 +264,7 @@ class testXX(unittest.TestCase):
 		expedicion = FechaMMAA(8, 2015)
 		vencimiento = FechaMMAA(8, 2017)
 		unaFecha = FechaMMAA(10, 2017)
-		unaTarjeta = Tarjeta(expedicion,vencimiento)
+		unaTarjeta = Tarjeta(expedicion,vencimiento,5400000000000001)
 
 		unCarrito.agregarElemento("Producto1",2)
 		try:
@@ -256,6 +273,7 @@ class testXX(unittest.TestCase):
 		except Exception as tarjetaVencida:
 			self.assertEquals( unCajero.ERROR_TARJETA_VENCIDA,\
 			tarjetaVencida.message )
+			self.assertEquals( len(unCajero.ventas()),0)
 	'''-------------------------fin test cajero------------------------------'''
 	def testNoSePuedeComprarConTarjetaRobada(self):
 		unCatalogo = {"Producto1": 10, 2: 2,"Producto3":4,5 :2}
@@ -264,7 +282,7 @@ class testXX(unittest.TestCase):
 		expedicion = FechaMMAA(8, 2015)
 		vencimiento = FechaMMAA(8, 2017)
 		unaFecha = FechaMMAA(10, 2016)
-		unaTarjetaRobada = Tarjeta(expedicion,vencimiento)
+		unaTarjetaRobada = Tarjeta(expedicion,vencimiento,5400000000000001)
 
 		unCarrito.agregarElemento("Producto1",2)
 		try:
@@ -273,6 +291,22 @@ class testXX(unittest.TestCase):
 		except Exception as tarjetaRobada:
 			self.assertEquals( "Tarjeta Robada",\
 			tarjetaRobada.message )
+	def testNoSePuedeComprarConTarjetaSinCredito(self):
+		unCatalogo = {"Producto1": 10, 2: 2,"Producto3":4,5 :2}
+		unCarrito = Carrito(unCatalogo)
+		unCajero = Cajero()
+		expedicion = FechaMMAA(8, 2015)
+		vencimiento = FechaMMAA(8, 2017)
+		unaFecha = FechaMMAA(10, 2016)
+		unaTarjetaSinCredito = Tarjeta(expedicion,vencimiento,5400000000000002)
+
+		unCarrito.agregarElemento("Producto1",2)
+		try:
+			unCajero.checkOut(unCarrito, unaTarjetaSinCredito, unaFecha)
+			self.fail()
+		except Exception as tarjetaSinCredito:
+			self.assertEquals( "Tarjeta Sin Credito",\
+			tarjetaSinCredito.message )
 
 if __name__ == "__main__":
 	unittest.main()

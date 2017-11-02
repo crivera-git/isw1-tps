@@ -1,4 +1,5 @@
-# coding=utf-8
+#!/usr/bin/env python
+# -*- coding: 850 -*-
 import unittest
 from datetime import datetime, timedelta
 
@@ -49,11 +50,10 @@ class Cajero:
 	def __init__(self):
 		self._mpSimulator = MPSimulator()
 		self._salesBook = []
+		
 	def validarTarjetaParaLaCompra(self, tarjeta, unaFecha):
 		if tarjeta.estaVencida(unaFecha):
 			raise Exception( self.ERROR_TARJETA_VENCIDA )
-	def cobrarAUnaTarjeta(self,tarjeta,fecha):
-		pass
 	def checkOut(self, carrito, tarjeta, unaFecha):
 		if carrito.estaVacio():
 			raise Exception( self.ERROR_CARRITO_VACIO )
@@ -67,8 +67,8 @@ class Cajero:
 				raise Exception( self.ERROR_TARJETA_SIN_CREDITO)
 			if mpMessage == "Transaccion realizada":
 				self._salesBook.append(carrito) 
-		else:
-			raise Exception( self.ERROR_COMPORTAMIENTO_NO_MODELADO )
+		# else:
+		# 	raise Exception( self.ERROR_COMPORTAMIENTO_NO_MODELADO )
 	def calcularMontoDeLaCompra(self, carrito):
 		monto = 0
 		for producto in carrito.dameProductos():
@@ -80,17 +80,20 @@ class Cajero:
 
 class Tarjeta:
 	ERROR_OBJETO_INVALIDO = "Los parámetros no son correctos."
-	def __init__(self,expedicion,vencimiento,numero):
+	def __init__(self,expedicion,vencimiento,numero,duenio):
 		self._expedicion = expedicion
 		self._vencimiento = vencimiento
 		self._numero = numero
+		self._duenio = duenio
 		self.validarQueElObjetoSeaValido()
 	def validarQueElObjetoSeaValido(self):
 		if not self.guardaValidarObjeto():
 			raise Exception( self.ERROR_OBJETO_INVALIDO )
 	def guardaValidarObjeto(self):
-		return True
-		# return self._expedicion.esMenor(self._vencimiento)
+		respuesta = self._expedicion.dameAnio() < self._vencimiento.dameAnio()
+		if self._vencimiento.dameAnio() == self._expedicion.dameAnio():
+			respuesta = self._expedicion.dameMes() < self._vencimiento.dameMes()
+		return respuesta
 
 	def estaVencida(self, unaFecha):
 		respuesta = self._vencimiento.dameAnio() < unaFecha.dameAnio()
@@ -118,24 +121,13 @@ class MPSimulator():
 	ERROR_TARJETA_SIN_CREDITO = "Tarjeta Sin Credito"
 	def __init__(self):
 		pass
-	def validarTarjetaParaLaCompra(self, tarjeta):
-		# if tarjeta.dameVecimiento() < datetime.today():
-		# 	raise Exception( self.ERROR_TARJETA_VENCIDA )
-		# else:
-		return True
+
 	def cobrarAUnaTarjeta(self, tarjeta, monto):
 		if tarjeta.numero() == 5400000000000001:
 			return self.ERROR_TARJETA_ROBADA
 		if tarjeta.numero() == 5400000000000002:
 			return self.ERROR_TARJETA_SIN_CREDITO
 		return "Transaccion realizada"
-
-class InterfazSalida:
-	def __init__(self):
-		pass
-
-
-
 
 
 class testXX(unittest.TestCase):
@@ -150,6 +142,20 @@ class testXX(unittest.TestCase):
 		unCarrito.agregarElemento(unElemento, 1)
 		self.assertEquals( 1, unCarrito.cantidadElementos() )
 		self.assertEquals( True, unCarrito.estaEnElCarrito(unElemento) )
+	def testPuedoAgregarMasDeUnLibroAlCarrito(self):
+		elemento1 = 1
+	 	elemento2 = 12
+	
+		unCatalogo = [elemento1,elemento2]
+		unCarrito = Carrito(unCatalogo)
+
+		unCarrito.agregarElemento(elemento1,1)
+		unCarrito.agregarElemento(elemento2,1)
+
+		self.assertEquals( 2, unCarrito.cantidadElementos() )
+		self.assertEquals( True, unCarrito.estaEnElCarrito(elemento1) )
+		self.assertEquals( True, unCarrito.estaEnElCarrito(elemento2) )
+
 	def testAgregoUnLibroQueNoPerteneceAlCatalogo(self):
 		unElemento = 1
 		otroElemento = 2
@@ -161,25 +167,25 @@ class testXX(unittest.TestCase):
 		except Exception as libroFueraCatalogo:
 			self.assertEquals( Carrito.ERROR_ELEMENTO_FUERA_DEL_CATALOGO, libroFueraCatalogo.message )
 			self.assertEquals( 0, unCarrito.cantidadElementos())
-	''' testing'''
-	def testAgregarMuchoElementosFunciona(self):
-		elemento1 = 1
-		elemento2 = 12
-		elemento3 = 13
-		elemento4 = 14
-		unCatalogo = [elemento1,elemento2,elemento3, elemento4]
-		unCarrito = Carrito(unCatalogo)
+	# ''' testing'''
+	# def testAgregarMuchoElementosFunciona(self):
+	# 	elemento1 = 1
+	# 	elemento2 = 12
+	# 	elemento3 = 13
+	# 	elemento4 = 14
+	# 	unCatalogo = [elemento1,elemento2,elemento3, elemento4]
+	# 	unCarrito = Carrito(unCatalogo)
 
-		unCarrito.agregarElemento(elemento1,1)
-		unCarrito.agregarElemento(elemento2,1)
-		unCarrito.agregarElemento(elemento3,1)
-		unCarrito.agregarElemento(elemento4,1)
+	# 	unCarrito.agregarElemento(elemento1,1)
+	# 	unCarrito.agregarElemento(elemento2,1)
+	# 	unCarrito.agregarElemento(elemento3,1)
+	# 	unCarrito.agregarElemento(elemento4,1)
 
-		self.assertEquals( 4, unCarrito.cantidadElementos() )
-		self.assertEquals( True, unCarrito.estaEnElCarrito(elemento1) )
-		self.assertEquals( True, unCarrito.estaEnElCarrito(elemento2) )
-		self.assertEquals( True, unCarrito.estaEnElCarrito(elemento3) )
-		self.assertEquals( True, unCarrito.estaEnElCarrito(elemento4) )
+	# 	self.assertEquals( 4, unCarrito.cantidadElementos() )
+	# 	self.assertEquals( True, unCarrito.estaEnElCarrito(elemento1) )
+	# 	self.assertEquals( True, unCarrito.estaEnElCarrito(elemento2) )
+	# 	self.assertEquals( True, unCarrito.estaEnElCarrito(elemento3) )
+	# 	self.assertEquals( True, unCarrito.estaEnElCarrito(elemento4) )
 	def testAgregoVariosDelMismoLibroYSuCantidadDeAparicionesEsCorrecta(self):
 		unElemento = 1
 		unCatalogo = [unElemento]
@@ -218,7 +224,7 @@ class testXX(unittest.TestCase):
 		expedicion = FechaMMAA(8, 2015)
 		vencimiento = FechaMMAA(8, 2017)
 		unaFecha = FechaMMAA(10, 2017)
-		tarjeta = Tarjeta(expedicion,vencimiento,5400000000000001)
+		tarjeta = Tarjeta(expedicion,vencimiento,5400000000000001,"Pepito Juarez")
 		try:
 			unCajero.checkOut(unCarrito,tarjeta,unaFecha)
 			self.fail()
@@ -238,7 +244,7 @@ class testXX(unittest.TestCase):
 	en cuenta para los siguientes tests.'''
 	''' De todos modos no le encontramos el sentido de "mal" un algoritmo que es
 	sencillo solo para seguir el modelo de TDD. Cuál es el por qué de esto?'''
-	def testElMontoDeUnCarritoConMuchosElementosYMuchasAparciones(self):
+	def testElMontoDeUnCarritoConMuchosElementosYMuchasAparcionesEsCorrecto(self):
 		unCatalogo = {"Producto1": 10, 2: 2,"Producto3":4,5 :2}
 		unCarrito = Carrito(unCatalogo)
 		unCajero = Cajero()
@@ -265,7 +271,7 @@ class testXX(unittest.TestCase):
 		expedicion = FechaMMAA(8, 2015)
 		vencimiento = FechaMMAA(8, 2017)
 		unaFecha = FechaMMAA(10, 2017)
-		unaTarjeta = Tarjeta(expedicion,vencimiento,5400000000000001)
+		unaTarjeta = Tarjeta(expedicion,vencimiento,5400000000000001,"Lionel Messi")
 
 		unCarrito.agregarElemento("Producto1",2)
 		try:
@@ -283,7 +289,7 @@ class testXX(unittest.TestCase):
 		expedicion = FechaMMAA(8, 2015)
 		vencimiento = FechaMMAA(8, 2017)
 		unaFecha = FechaMMAA(10, 2016)
-		unaTarjetaRobada = Tarjeta(expedicion,vencimiento,5400000000000001)
+		unaTarjetaRobada = Tarjeta(expedicion,vencimiento,5400000000000001, "Cristiano Ronaldo")
 
 		unCarrito.agregarElemento("Producto1",2)
 		try:
@@ -299,7 +305,7 @@ class testXX(unittest.TestCase):
 		expedicion = FechaMMAA(8, 2015)
 		vencimiento = FechaMMAA(8, 2017)
 		unaFecha = FechaMMAA(10, 2016)
-		unaTarjetaSinCredito = Tarjeta(expedicion,vencimiento,5400000000000002)
+		unaTarjetaSinCredito = Tarjeta(expedicion,vencimiento,5400000000000002, "Raton Perez")
 
 		unCarrito.agregarElemento("Producto1",2)
 		try:
@@ -308,6 +314,19 @@ class testXX(unittest.TestCase):
 		except Exception as tarjetaSinCredito:
 			self.assertEquals( "Tarjeta Sin Credito",\
 			tarjetaSinCredito.message )
+	def testSeHaceCorrectamenteElDebito(self):
+		unCatalogo = {"Producto1": 10, 2: 2,"Producto3":4,5 :2}
+		unCarrito = Carrito(unCatalogo)
+		unCajero = Cajero()
+		expedicion = FechaMMAA(8, 2015)
+		vencimiento = FechaMMAA(8, 2017)
+		unaFecha = FechaMMAA(10, 2016)
+		unaTarjeta = Tarjeta(expedicion,vencimiento,5400000000000000, "Bart Simpson")
+		unCarrito.agregarElemento("Producto1",2)
+		unCajero.checkOut(unCarrito, unaTarjeta, unaFecha)
+		self.assertEquals( len(unCajero.ventas()),1)
+
+
 
 if __name__ == "__main__":
 	unittest.main()

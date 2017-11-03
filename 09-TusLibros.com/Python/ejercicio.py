@@ -1,7 +1,7 @@
 # coding=utf-8
 import unittest
 from datetime import datetime, timedelta
-
+from random import random
 class Carrito:
 	ERROR_ELEMENTO_FUERA_DEL_CATALOGO = "El producto agregado no pertenece al catalogo"
 	ERROR_CANTIDAD_APARICIONES_NO_POSITIVO = "La cantidad de apariciones es menor o igual a 0"
@@ -44,8 +44,7 @@ class Cajero:
 	ERROR_CARRITO_VACIO = "El carrito provisto está vacio"
 	ERROR_COMPORTAMIENTO_NO_MODELADO = "Se produjo una acción no contemplada."
 	ERROR_TARJETA_VENCIDA = "La tarjeta esta vencida."
-	ERROR_TARJETA_ROBADA = "Tarjeta Robada"
-	ERROR_TARJETA_SIN_CREDITO = "Tarjeta Sin Credito"
+
 	def __init__(self):
 		self._mpSimulator = MPSimulator()
 		self._salesBook = []
@@ -61,12 +60,7 @@ class Cajero:
 			self.validarTarjetaParaLaCompra(tarjeta, unaFecha)
 			monto = self.calcularMontoDeLaCompra(carrito)
 			mpMessage = self._mpSimulator.cobrarAUnaTarjeta(tarjeta,monto)
-			if mpMessage == "Tarjeta Robada" :
-				raise Exception( self.ERROR_TARJETA_ROBADA)
-			if mpMessage == "Tarjeta Sin Credito" :
-				raise Exception( self.ERROR_TARJETA_SIN_CREDITO)
-			if mpMessage == "Transaccion realizada":
-				self._salesBook.append(carrito) 
+			self._salesBook.append(carrito)
 		else:
 			raise Exception( self.ERROR_COMPORTAMIENTO_NO_MODELADO )
 	def calcularMontoDeLaCompra(self, carrito):
@@ -108,7 +102,7 @@ class FechaMMAA:
 		return self._mes
 	def dameAnio(self):
 		return self._anio
-	''' overload del operador < '''
+	# ''' overload del operador < '''
 	# def esMenor(self, other):
 	# 	return (self._mes < other.dameMes()) and (self._anio < other.dameAnio())
 
@@ -116,24 +110,51 @@ class MPSimulator():
 	ERROR_TARJETA_VENCIDA = "La tarjeta esta vencida."
 	ERROR_TARJETA_ROBADA = "Tarjeta Robada"
 	ERROR_TARJETA_SIN_CREDITO = "Tarjeta Sin Credito"
-	def __init__(self):
-		pass
+	def __init__(self,tarjetasRobadas, tarjetasConSaldos):
+		self._robadas = tarjetasRobadas
+		self._tarjetas = tarjetasConSaldos
 	def validarTarjetaParaLaCompra(self, tarjeta):
 		# if tarjeta.dameVecimiento() < datetime.today():
 		# 	raise Exception( self.ERROR_TARJETA_VENCIDA )
 		# else:
 		return True
 	def cobrarAUnaTarjeta(self, tarjeta, monto):
-		if tarjeta.numero() == 5400000000000001:
-			return self.ERROR_TARJETA_ROBADA
-		if tarjeta.numero() == 5400000000000002:
-			return self.ERROR_TARJETA_SIN_CREDITO
-		return "Transaccion realizada"
+		numeroTarjeta = tarjeta.numero()
+		if numeroTarjeta in self._robadas:
+			raise Exception( self.ERROR_TARJETA_ROBADA )
+		if self._tarjetas[tarjeta.numero()] < monto:
+			raise Exception( self.ERROR_TARJETA_SIN_CREDITO )
 
-class InterfazSalida:
-	def __init__(self):
-		pass
 
+class SistemMisLibros:
+	ERROR_USUARIO_INEXISTENTE = "El usuario no existe."
+	ERROR_CLAVE_INVALIDA = 	"La clave no es correcta."
+	ERROR_ID_INEXISTENTE = "La id no existe."
+	def __init__(self, Usuarios, unCatalogo):
+		self._usuarios = Usuarios
+		self._carritos = {}
+		self._catalogo = unCatalogo
+	def crearId(self):
+		return random()
+	def crearCarrito(self, unUsuario, unaClave):
+		if not( unUsuario in self._usuarios):
+			raise Exception( self.ERROR_USUARIO_INEXISTENTE )
+		if unUsuario in self._usuarios:
+			if self.claveUsuario(unUsuario) != unaClave:
+				raise Exception( self.ERROR_CLAVE_INVALIDA )
+			else:
+				IDNueva = self.crearId()
+				self._carritos[IDNueva] = Carrito(self._catalogo)
+		return IDNueva
+	def claveUsuario(self, unUsuario):
+		return self._usuarios[unUsuario]
+	def listCart(self, unId):
+		if not(unId in self._carritos):
+			raise Exception( self.ERROR_ID_INEXISTENTE )
+		else:
+			return self._carritos[unId].dameProductos()
+	def addToCart(self,unId,unElemento,unaCantidad):
+		self._carritos[unId].agregarElemento(unElemento,unaCantidad)
 
 
 
@@ -308,6 +329,83 @@ class testXX(unittest.TestCase):
 		except Exception as tarjetaSinCredito:
 			self.assertEquals( "Tarjeta Sin Credito",\
 			tarjetaSinCredito.message )
+
+	'''------------------fin test Merchant Processor ------------------------'''
+
+	def testNoPuedoCrearUnCarritoAUnUsuarioInvalido(self):
+		unId = "user1"
+		unaClave = "user1"
+		nuestrosUsuarios = {}
+		unCatalogo = {"Producto1": 10, 2: 2,"Producto3":4,5 :2}
+		sistema = SistemMisLibros(nuestrosUsuarios,unCatalogo)
+		try:
+			sistema.crearCarrito(unId, unaClave)
+			self.fail()
+		except Exception as usuarioInexistente:
+			self.assertEquals( usuarioInexistente.message, \
+			sistema.ERROR_USUARIO_INEXISTENTE )
+	def testLaClaveDelUsuarioNoEsCorrecta(self):
+		unId = "user1"
+		unaClave = "user1"
+		nuestrosUsuarios = {"user1":"user2"}
+		unCatalogo = {"Producto1": 10, 2: 2,"Producto3":4,5 :2}
+		sistema = SistemMisLibros(nuestrosUsuarios, unCatalogo)
+		try:
+			sistema.crearCarrito(unId, unaClave)
+			self.fail()
+		except Exception as claveInvalida:
+			self.assertEquals( claveInvalida.message, \
+			sistema.ERROR_CLAVE_INVALIDA )
+	def testListCartDeUnCarritoInexistenteFalla(self):
+		unId = "user1"
+		unaClave = "user1"
+		nuestrosUsuarios = {"user1":"user1"}
+		unCatalogo = {"Producto1": 10, 2: 2,"Producto3":4,5 :2}
+		sistema = SistemMisLibros(nuestrosUsuarios,unCatalogo)
+		IdInvalida = 123
+		try:
+			sistema.listCart(IdInvalida)
+			self.fail()
+		except Exception as carritoInexistente:
+			self.assertEquals( carritoInexistente.message, \
+			sistema.ERROR_ID_INEXISTENTE )
+	def testListCartDeUnNuevoCarritoValidoEsUnCarritoVacio(self):
+		unId = "user1"
+		unaClave = "user1"
+		nuestrosUsuarios = {"user1":"user1"}
+		unCatalogo = {"Producto1": 10, 2: 2,"Producto3":4,5 :2}
+		sistema = SistemMisLibros(nuestrosUsuarios, unCatalogo)
+		IdDeUnCarrito = sistema.crearCarrito(unId, unaClave)
+
+		self.assertEquals( sistema.listCart(IdDeUnCarrito), {} )
+	def testAgregarUnElementoAUnCarritoYElElementoSeAgrega(self):
+		unId = "user1"
+		unaClave = "user1"
+		nuestrosUsuarios = {"user1":"user1"}
+		unCatalogo = {"Producto1": 10, 2: 2,"Producto3":4,5 :2}
+		sistema = SistemMisLibros(nuestrosUsuarios, unCatalogo)
+		IdDeUnCarrito = sistema.crearCarrito(unId, unaClave)
+		unElemento = "Producto1"
+		sistema.addToCart(IdDeUnCarrito,unElemento,1)
+		compra = {unElemento:1}
+		self.assertEquals(sistema.listCart(IdDeUnCarrito),compra )
+	def testAddToCartDeUnCarritoInexistente(self):
+		unId = "user1"
+		unaClave = "user1"
+		nuestrosUsuarios = {"user1":"user1"}
+		unCatalogo = {"Producto1": 10, 2: 2,"Producto3":4,5 :2}
+		sistema = SistemMisLibros(nuestrosUsuarios, unCatalogo)
+		IdInvalida = 123
+		unElemento = "Producto1"
+
+		try:
+			sistema.addToCart(IdInvalida,unElemento,1)
+			self.fail()
+		except Exception as carritoInexistente:
+			self.assertEquals( carritoInexistente.message, \
+			sistema.ERROR_ID_INEXISTENTE )
+
+
 
 if __name__ == "__main__":
 	unittest.main()

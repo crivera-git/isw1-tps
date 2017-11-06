@@ -145,15 +145,11 @@ class SistemMisLibros:
 	ERROR_ID_INEXISTENTE = "La id no existe."
 	ERROR_COMPORTAMIENTO_NO_MODELADO = "Se produjo una acción no contemplada."
 	ERROR_TIMEOUT = "Tiempo de inactividad excedido."
-	# def iniciarListasDeComprasDeUsuarios(self):
-	# 	for usuario in self._usuarios:
-	# 		self._comprasPorUsuario[usuario] = {}
 	def __init__(self, Usuarios, unCatalogo, merchantProcesor,reloj):
 		self._usuarios = Usuarios # diccionario usuario : contraseña
 		self._comprasPorUsuario = {}
 		for usuario in self._usuarios:
 		 	self._comprasPorUsuario[usuario] = []
-		#self.iniciarListaDeComprasDeUsuarios()
 		self._carritos = {} # diccionario idCarrito : (usuarioAlQuePertenece,carrito, horaUltimaOperación)
 		self._catalogo = unCatalogo
 		self._cajero = Cajero(merchantProcesor)
@@ -180,10 +176,8 @@ class SistemMisLibros:
 		else:
 			if self._usuarios[unUsuario] != unaClave:
 				raise Exception( self.ERROR_CLAVE_INVALIDA )
-	''' El 30 que aparece en la guarda tienen que ser minutos'''
 	def validarHoraDeLaUltimaOperacion(self, idCarrito):
 		horaActual = self._reloj.now()
-		'''CAMBIAR PARA QUE SEA MAS FACIL DE LEER'''
 		if (horaActual - self._carritos[idCarrito][2]) > timedelta(minutes=30):
 			raise Exception( self.ERROR_TIMEOUT )
 		else:
@@ -217,21 +211,11 @@ class SistemMisLibros:
 			porque sino ya hubiera saltado la exepcion '''
 			usuarioQueCompro = self._carritos[idCarrito][0]
 			self._comprasPorUsuario[usuarioQueCompro].append(carrito.dameProductos()) 
-			#self.agregarVenta(usuarioQueCompro,carrito.dameProductos())
 			return transaccionID
 	def listPurchases(self,unUsuario,unaClave):
 		self.validarUsuario(unUsuario,unaClave)
 		return self._comprasPorUsuario[unUsuario]
-	# def iniciarListasDeComprasDeUsuarios(self):
-	# 	for usuario in self._usuarios:
-	# 		self._comprasPorUsuario[usuario] = {}
-	# def agregarVenta(self,usuario,venta):
-	# 	for producto in venta:
-	# 		if producto in self._comprasPorUsuario[usuario]:
-	# 			self._comprasPorUsuario[usuario] += venta[producto]
-	# 		else:
-	# 			self._comprasPorUsuario[usuario] = venta[producto]
-
+	
 
 
 
@@ -242,21 +226,8 @@ class HTTPtoSistem():
 	codigos de error hacia afuera'''
 
 
-
-'''ver donde meter la clase reloj'''
-'''quise hacer esto pero me tiraba error'''
-# class Reloj():
-# 		def __init__(self):
-# 			'''VER'''
-# 			self._tiempoAgregado = datetime.now() - datetime.now()
-# 		def now(self):
-
-# 			return datetime.now() + self._tiempoAgregado()
-# 		def agregarTiempo(self):
-# 			self._tiempoAgregado = self._tiempoAgregado + timedelta(minutes=32)
 class Reloj():
 		def __init__(self):
-			'''VER'''
 			self._fechaInicial = datetime.now()
 			self._fechaConTiempoAgregado = datetime.now()
 		def now(self):
@@ -650,18 +621,18 @@ class testXX(unittest.TestCase):
 		except Exception as claveErronea:
 			self.assertEquals( claveErronea.message, \
 			sistema.ERROR_CLAVE_INVALIDA )
-	# def testListPurchasesDeUnUsuarioQueNotieneComprasEstaVacia(self):
-	# 	unId = "user2"
-	# 	unaClave = "user1"
-	# 	nuestrosUsuarios = {"user2":"user1"}
-	# 	unCatalogo = {"Producto1": 10, 2: 2,"Producto3":4,5 :2}
-	# 	tarjetasRobadas = []
-	# 	tarjetaSinCredito = []
-	# 	mpSimulator = MPSimulator(tarjetasRobadas,tarjetaSinCredito)
-	# 	reloj = Reloj()
-	# 	sistema = SistemMisLibros(nuestrosUsuarios,unCatalogo,mpSimulator,reloj)
-	# 	IdDeUnCarrito = sistema.createCart(unId, unaClave)
-	# 	self.assertEquals( {}, sistema.listPurchases(unId, unaClave) )
+	def testListPurchasesDeUnUsuarioQueNotieneComprasEstaVacia(self):
+		unId = "user2"
+		unaClave = "user1"
+		nuestrosUsuarios = {"user2":"user1"}
+		unCatalogo = {"Producto1": 10, 2: 2,"Producto3":4,5 :2}
+		tarjetasRobadas = []
+		tarjetaSinCredito = []
+		mpSimulator = MPSimulator(tarjetasRobadas,tarjetaSinCredito)
+		reloj = Reloj()
+		sistema = SistemMisLibros(nuestrosUsuarios,unCatalogo,mpSimulator,reloj)
+		IdDeUnCarrito = sistema.createCart(unId, unaClave)
+		self.assertEquals( [], sistema.listPurchases(unId, unaClave) )
 
 
 	def testListPurchasesDeUnUsuarioQueTieneUnaCompraEsCorrecto(self):

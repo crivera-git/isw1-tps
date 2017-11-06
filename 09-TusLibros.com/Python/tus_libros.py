@@ -145,15 +145,21 @@ class SistemMisLibros:
 	ERROR_ID_INEXISTENTE = "La id no existe."
 	ERROR_COMPORTAMIENTO_NO_MODELADO = "Se produjo una acción no contemplada."
 	ERROR_TIMEOUT = "Tiempo de inactividad excedido."
+	# def iniciarListasDeComprasDeUsuarios(self):
+	# 	for usuario in self._usuarios:
+	# 		self._comprasPorUsuario[usuario] = {}
 	def __init__(self, Usuarios, unCatalogo, merchantProcesor,reloj):
 		self._usuarios = Usuarios # diccionario usuario : contraseña
-		self._comprasPorUsuario = {} # diccionario usuario : listaDeCarritos
+		self._comprasPorUsuario = {}
+		for usuario in self._usuarios:
+			self._comprasPorUsuario[usuario] = {}
+		#self.iniciarListaDeComprasDeUsuarios()
 		self._carritos = {} # diccionario idCarrito : (usuarioAlQuePertenece,carrito, horaUltimaOperación)
 		self._catalogo = unCatalogo
 		self._cajero = Cajero(merchantProcesor)
 		self._reloj = reloj
 	def dameCuantasComprasHizoElUsuario(self,unUsuario):
-		if len(self._comprasPorUsuario[unUsuario]) == 0:
+		if len(self._comprasPorUsuario[unUsuario]) == {}:
 			return 0
 		return len(self._comprasPorUsuario[unUsuario])
 	def dameComprasDelUsuario(self,unUsuario):
@@ -166,7 +172,6 @@ class SistemMisLibros:
 		horaOperacion = self._reloj.now()
 		tuplaUsuarioCarrito = [unUsuario, Carrito(self._catalogo), horaOperacion]
 		self._carritos[IDNueva] = tuplaUsuarioCarrito
-		self._comprasPorUsuario[unUsuario] = []
 		return IDNueva
 	def validarUsuario(self, unUsuario, unaClave):
 		if not( unUsuario in self._usuarios):
@@ -208,10 +213,20 @@ class SistemMisLibros:
 			''' Para este momento nosotros sabemos que la compra ya se realizo
 			porque sino ya hubiera saltado la exepcion '''
 			usuarioQueCompro = self._carritos[idCarrito][0]
-			self._comprasPorUsuario[usuarioQueCompro].append(carrito.dameProductos())
+			self.agregarVenta(usuarioQueCompro,carrito.dameProductos())
 			return transaccionID
 	def listPurchases(self,unUsuario,unaClave):
 		self.validarUsuario(unUsuario,unaClave)
+		return self._comprasPorUsuario[unUsuario]
+	def iniciarListasDeComprasDeUsuarios(self):
+		for usuario in self._usuarios:
+			self._comprasPorUsuario[usuario] = {}
+	def agregarVenta(self,usuario,venta):
+		for producto in venta:
+			if producto in self._comprasPorUsuario[usuario]:
+				self._comprasPorUsuario[usuario] += venta[producto]
+			else:
+				self._comprasPorUsuario[usuario] = venta[producto]
 
 
 
@@ -631,30 +646,74 @@ class testXX(unittest.TestCase):
 		except Exception as claveErronea:
 			self.assertEquals( claveErronea.message, \
 			sistema.ERROR_CLAVE_INVALIDA )
-	# def testListPurchasesDeUnUsuarioQueTieneUnaCompraEsCorrecto(self):
+	def testListPurchasesDeUnUsuarioQueNotieneComprasEstaVacia(self):
+		unId = "user2"
+		unaClave = "user1"
+		nuestrosUsuarios = {"user2":"user1"}
+		unCatalogo = {"Producto1": 10, 2: 2,"Producto3":4,5 :2}
+		tarjetasRobadas = []
+		tarjetaSinCredito = []
+		mpSimulator = MPSimulator(tarjetasRobadas,tarjetaSinCredito)
+		reloj = Reloj()
+		sistema = SistemMisLibros(nuestrosUsuarios,unCatalogo,mpSimulator,reloj)
+		IdDeUnCarrito = sistema.createCart(unId, unaClave)
+		self.assertEquals( {}, sistema.listPurchases(unId, unaClave) )
+
+
+	#def testListPurchasesDeUnUsuarioQueTieneUnaCompraEsCorrecto(self):
 		
-	# 	unId = "user1"
-	# 	unaClave = "user1"
-	# 	nuestrosUsuarios = {"user1":"user1"}
-	# 	unCatalogo = {"Producto1": 10, 2: 2,"Producto3":4,5 :2}
-	# 	tarjetasRobadas = []
-	# 	tarjetaSinCredito = []
-	# 	mpSimulator = MPSimulator(tarjetasRobadas,tarjetaSinCredito)
-	# 	reloj = Reloj()
-	# 	sistema = SistemMisLibros(nuestrosUsuarios,unCatalogo,mpSimulator,reloj)
-	# 	IdDeUnCarrito = sistema.createCart(unId, unaClave)
-	# 	unElemento = "Producto1"
-	# 	sistema.addToCart(IdDeUnCarrito,unElemento,1)
+		# unId = "user1"
+		# unaClave = "user1"
+		# nuestrosUsuarios = {"user1":"user1"}
+		# unCatalogo = {"Producto1": 10, 2: 2,"Producto3":4,5 :2}
+		# tarjetasRobadas = []
+		# tarjetaSinCredito = []
+		# mpSimulator = MPSimulator(tarjetasRobadas,tarjetaSinCredito)
+		# reloj = Reloj()
+		# sistema = SistemMisLibros(nuestrosUsuarios,unCatalogo,mpSimulator,reloj)
+		# IdDeUnCarrito = sistema.createCart(unId, unaClave)
+		# unElemento = "Producto1"
+		# sistema.addToCart(IdDeUnCarrito,unElemento,1)
 
-	# 	numeroTarjeta= 5400000000000002
-	# 	vencimiento = FechaMMAA(8, 2018)
-	# 	nombre = "Juan Perez"
+		# numeroTarjeta= 5400000000000002
+		# vencimiento = FechaMMAA(8, 2018)
+		# nombre = "Juan Perez"
 
-	# 	sistema.checkOutCart(IdDeUnCarrito,numeroTarjeta,vencimiento,nombre)
-	# 	venta = [carrito]
+		# sistema.checkOutCart(IdDeUnCarrito,numeroTarjeta,vencimiento,nombre)
+		# venta = {unElemento:1}
+		# ventas = [venta]
+		# self.assertEquals( ventas, sistema.listPurchases(unId,unaClave) )
 
-	# 	self.assertEquals( , sistema.ERROR_CLAVE_INVALIDA )
+	#def testListPurchasesDeUnUsuarioQueTieneMasDeUnaCompraEsCorrecto(self):
+		# unId = "user1"
+		# unaClave = "user1"
+		# nuestrosUsuarios = {"user1":"user1"}
+		# unCatalogo = {"Producto1": 10, "Producto2": 2,"Producto3":4,5 :2}
+		# tarjetasRobadas = []
+		# tarjetaSinCredito = []
+		# mpSimulator = MPSimulator(tarjetasRobadas,tarjetaSinCredito)
+		# reloj = Reloj()
+		# sistema = SistemMisLibros(nuestrosUsuarios,unCatalogo,mpSimulator,reloj)
+		# IdDeUnCarrito = sistema.createCart(unId, unaClave)
+		# unElemento = "Producto1"
+		# sistema.addToCart(IdDeUnCarrito,unElemento,1)
 
+		# numeroTarjeta= 5400000000000002
+		# vencimiento = FechaMMAA(8, 2018)
+		# nombre = "Juan Perez"
+
+		# sistema.checkOutCart(IdDeUnCarrito,numeroTarjeta,vencimiento,nombre)
+		# venta1 = {unElemento:1}
+		# IdOtroCarrito = sistema.createCart(unId, unaClave)
+		# otroElemento = "Producto2"
+		# sistema.addToCart(IdOtroCarrito,otroElemento,2)
+		# sistema.checkOutCart(IdOtroCarrito,numeroTarjeta,vencimiento,nombre)
+		# venta2 = {otroElemento:2}
+
+		# ventas = [venta1,venta2]
+
+
+		# self.assertEquals( ventas, sistema.listPurchases(unId,unaClave) )
 
 
 

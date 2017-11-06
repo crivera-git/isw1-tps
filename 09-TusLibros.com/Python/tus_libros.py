@@ -145,12 +145,13 @@ class SistemMisLibros:
 	ERROR_ID_INEXISTENTE = "La id no existe."
 	ERROR_COMPORTAMIENTO_NO_MODELADO = "Se produjo una acción no contemplada."
 	ERROR_TIMEOUT = "Tiempo de inactividad excedido."
-	def __init__(self, Usuarios, unCatalogo, merchantProcesor):
+	def __init__(self, Usuarios, unCatalogo, merchantProcesor,reloj):
 		self._usuarios = Usuarios # diccionario usuario : contraseña
 		self._comprasPorUsuario = {} # diccionario usuario : listaDeCarritos
 		self._carritos = {} # diccionario idCarrito : (usuarioAlQuePertenece,carrito, horaUltimaOperación)
 		self._catalogo = unCatalogo
 		self._cajero = Cajero(merchantProcesor)
+		self._reloj = reloj
 	def dameCuantasComprasHizoElUsuario(self,unUsuario):
 		if len(self._comprasPorUsuario[unUsuario]) == 0:
 			return 0
@@ -162,7 +163,7 @@ class SistemMisLibros:
 	def createCart(self, unUsuario, unaClave):
 		self.validarUsuario(unUsuario, unaClave)
 		IDNueva = self.crearId()
-		horaOperacion = datetime.datetime
+		horaOperacion = self._reloj.now()
 		tuplaUsuarioCarrito = [unUsuario, Carrito(self._catalogo), horaOperacion]
 		self._carritos[IDNueva] = tuplaUsuarioCarrito
 		self._comprasPorUsuario[unUsuario] = []
@@ -175,8 +176,9 @@ class SistemMisLibros:
 				raise Exception( self.ERROR_CLAVE_INVALIDA )
 	''' El 30 que aparece en la guarda tienen que ser minutos'''
 	def validarHoraDeLaUltimaOperacion(self, idCarrito):
-		horaActual = datetime.datetime
-		if (horaActual - self._carritos[IDNueva][2]) > 30:
+		horaActual = self._reloj.now()
+		'''CAMBIAR PARA QUE SEA MAS FACIL DE LEER'''
+		if (horaActual - self._carritos[idCarrito][2]) > timedelta(minutes=30):
 			raise Exception( self.ERROR_TIMEOUT )
 	def listCart(self, unId):
 		if not(unId in self._carritos):
@@ -191,9 +193,11 @@ class SistemMisLibros:
 		else:
 			raise Exception(self.ERROR_COMPORTAMIENTO_NO_MODELADO)
 	def checkOutCart(self,idCarrito,nroTarjeta,fechaVencimientoTarjeta,nombreTarjeta):
+		
 		if not(idCarrito in self._carritos):
 			raise Exception(self.ERROR_ID_INEXISTENTE)
 		elif idCarrito in self._carritos:
+			self.validarHoraDeLaUltimaOperacion(idCarrito)
 			tarjeta = Tarjeta(fechaVencimientoTarjeta,nroTarjeta,nombreTarjeta)
 			fecha = date.today()
 			fechaNuestroModelo = FechaMMAA(fecha.month,fecha.year)
@@ -218,11 +222,34 @@ class HTTPtoSistem():
 
 
 
+'''ver donde meter la clase reloj'''
+'''quise hacer esto pero me tiraba error'''
+# class Reloj():
+# 		def __init__(self):
+# 			'''VER'''
+# 			self._tiempoAgregado = datetime.now() - datetime.now()
+# 		def now(self):
 
+# 			return datetime.now() + self._tiempoAgregado()
+# 		def agregarTiempo(self):
+# 			self._tiempoAgregado = self._tiempoAgregado + timedelta(minutes=32)
+class Reloj():
+		def __init__(self):
+			'''VER'''
+			self._fechaInicial = datetime.now()
+			self._fechaConTiempoAgregado = datetime.now()
+		def now(self):
+			tiempoActual = datetime.now()
+			tiempoAgregado = self._fechaConTiempoAgregado - self._fechaInicial
+			return tiempoActual + tiempoAgregado
+		def agregarTiempo(self):
+			self._fechaConTiempoAgregado = self._fechaConTiempoAgregado + timedelta(minutes=32)
 
 
 
 class testXX(unittest.TestCase):
+	
+
 	def testCuandoCreoElCarritoEsteEstaVacio(self):
 		unCatalogo = []
 		unCarrito = Carrito(unCatalogo)
@@ -434,7 +461,8 @@ class testXX(unittest.TestCase):
 		tarjetasRobadas = []
 		tarjetaSinCredito = []
 		mpSimulator = MPSimulator(tarjetasRobadas,tarjetaSinCredito)
-		sistema = SistemMisLibros(nuestrosUsuarios,unCatalogo,mpSimulator)
+		reloj = Reloj()
+		sistema = SistemMisLibros(nuestrosUsuarios,unCatalogo,mpSimulator,reloj)
 		try:
 			sistema.createCart(unId, unaClave)
 			self.fail()
@@ -449,7 +477,8 @@ class testXX(unittest.TestCase):
 		tarjetasRobadas = []
 		tarjetaSinCredito = []
 		mpSimulator = MPSimulator(tarjetasRobadas,tarjetaSinCredito)
-		sistema = SistemMisLibros(nuestrosUsuarios,unCatalogo,mpSimulator)
+		reloj = Reloj()
+		sistema = SistemMisLibros(nuestrosUsuarios,unCatalogo,mpSimulator,reloj)
 		try:
 			sistema.createCart(unId, unaClave)
 			self.fail()
@@ -464,7 +493,8 @@ class testXX(unittest.TestCase):
 		tarjetasRobadas = []
 		tarjetaSinCredito = []
 		mpSimulator = MPSimulator(tarjetasRobadas,tarjetaSinCredito)
-		sistema = SistemMisLibros(nuestrosUsuarios,unCatalogo,mpSimulator)
+		reloj = Reloj()
+		sistema = SistemMisLibros(nuestrosUsuarios,unCatalogo,mpSimulator,reloj)
 		IdInvalida = 123
 		try:
 			sistema.listCart(IdInvalida)
@@ -480,7 +510,8 @@ class testXX(unittest.TestCase):
 		tarjetasRobadas = []
 		tarjetaSinCredito = []
 		mpSimulator = MPSimulator(tarjetasRobadas,tarjetaSinCredito)
-		sistema = SistemMisLibros(nuestrosUsuarios,unCatalogo,mpSimulator)
+		reloj = Reloj()
+		sistema = SistemMisLibros(nuestrosUsuarios,unCatalogo,mpSimulator,reloj)
 		IdDeUnCarrito = sistema.createCart(unId, unaClave)
 
 		self.assertEquals( sistema.listCart(IdDeUnCarrito), {} )
@@ -492,7 +523,8 @@ class testXX(unittest.TestCase):
 		tarjetasRobadas = []
 		tarjetaSinCredito = []
 		mpSimulator = MPSimulator(tarjetasRobadas,tarjetaSinCredito)
-		sistema = SistemMisLibros(nuestrosUsuarios,unCatalogo,mpSimulator)
+		reloj = Reloj()
+		sistema = SistemMisLibros(nuestrosUsuarios,unCatalogo,mpSimulator,reloj)
 		IdDeUnCarrito = sistema.createCart(unId, unaClave)
 		unElemento = "Producto1"
 		sistema.addToCart(IdDeUnCarrito,unElemento,1)
@@ -506,7 +538,8 @@ class testXX(unittest.TestCase):
 		tarjetasRobadas = []
 		tarjetaSinCredito = []
 		mpSimulator = MPSimulator(tarjetasRobadas,tarjetaSinCredito)
-		sistema = SistemMisLibros(nuestrosUsuarios,unCatalogo,mpSimulator)
+		reloj = Reloj()
+		sistema = SistemMisLibros(nuestrosUsuarios,unCatalogo,mpSimulator,reloj)
 		IdInvalida = 123
 		unElemento = "Producto1"
 
@@ -524,7 +557,8 @@ class testXX(unittest.TestCase):
 		tarjetasRobadas = []
 		tarjetaSinCredito = []
 		mpSimulator = MPSimulator(tarjetasRobadas,tarjetaSinCredito)
-		sistema = SistemMisLibros(nuestrosUsuarios,unCatalogo,mpSimulator)
+		reloj = Reloj()
+		sistema = SistemMisLibros(nuestrosUsuarios,unCatalogo,mpSimulator,reloj)
 		IdInvalida = 123
 		unElemento = "Producto1"
 
@@ -542,7 +576,8 @@ class testXX(unittest.TestCase):
 		tarjetasRobadas = []
 		tarjetaSinCredito = []
 		mpSimulator = MPSimulator(tarjetasRobadas,tarjetaSinCredito)
-		sistema = SistemMisLibros(nuestrosUsuarios,unCatalogo,mpSimulator)
+		reloj = Reloj()
+		sistema = SistemMisLibros(nuestrosUsuarios,unCatalogo,mpSimulator,reloj)
 		IdInvalida = 123
 		unElemento = "Producto1"
 
@@ -568,7 +603,8 @@ class testXX(unittest.TestCase):
 		tarjetasRobadas = []
 		tarjetaSinCredito = []
 		mpSimulator = MPSimulator(tarjetasRobadas,tarjetaSinCredito)
-		sistema = SistemMisLibros(nuestrosUsuarios,unCatalogo,mpSimulator)
+		reloj = Reloj()
+		sistema = SistemMisLibros(nuestrosUsuarios,unCatalogo,mpSimulator,reloj)
 		IdDeUnCarrito = sistema.createCart(unId, unaClave)
 		unElemento = "Producto1"
 		sistema.addToCart(IdDeUnCarrito,unElemento,1)
@@ -595,7 +631,8 @@ class testXX(unittest.TestCase):
 		tarjetasRobadas = []
 		tarjetaSinCredito = []
 		mpSimulator = MPSimulator(tarjetasRobadas,tarjetaSinCredito)
-		sistema = SistemMisLibros(nuestrosUsuarios,unCatalogo,mpSimulator)
+		reloj = Reloj()
+		sistema = SistemMisLibros(nuestrosUsuarios,unCatalogo,mpSimulator,reloj)
 		IdDeUnCarrito = sistema.createCart(unId, unaClave)
 		unElemento = "Producto1"
 		sistema.addToCart(IdDeUnCarrito,unElemento,1)
@@ -609,7 +646,7 @@ class testXX(unittest.TestCase):
 		ComprasDelUsuarioNuevas = sistema.dameCuantasComprasHizoElUsuario(unId)
 
 		self.assertEquals(ComprasDelUsuarioNuevas, ComprasDelUsuarioViejas+1)
-	def testLuegoDe30MinutosElCarritoEstaVencido(self):
+	def testNoSePuedeHacerCheckOutDeUnCarritoVencido(self):
 		unId = "user1"
 		unaClave = "user1"
 		nuestrosUsuarios = {"user1":"user1"}
@@ -617,7 +654,8 @@ class testXX(unittest.TestCase):
 		tarjetasRobadas = []
 		tarjetaSinCredito = []
 		mpSimulator = MPSimulator(tarjetasRobadas,tarjetaSinCredito)
-		sistema = SistemMisLibros(nuestrosUsuarios,unCatalogo,mpSimulator)
+		reloj = Reloj()
+		sistema = SistemMisLibros(nuestrosUsuarios,unCatalogo,mpSimulator,reloj)
 		IdDeUnCarrito = sistema.createCart(unId, unaClave)
 		unElemento = "Producto1"
 		sistema.addToCart(IdDeUnCarrito,unElemento,1)
@@ -625,9 +663,16 @@ class testXX(unittest.TestCase):
 		numeroTarjeta= 5400000000000002
 		vencimiento = FechaMMAA(8, 2018)
 		nombre = "Juan Perez"
-
-
-		sistema.checkOutCart(IdDeUnCarrito,numeroTarjeta,vencimiento,nombre)
+		reloj.agregarTiempo()
+		ComprasDelUsuarioViejas = sistema.dameCuantasComprasHizoElUsuario(unId)
+		try:
+			sistema.checkOutCart(IdDeUnCarrito,numeroTarjeta,vencimiento,nombre)
+			self.fail()
+		except Exception as carritoVencido:
+			self.assertEquals( carritoVencido.message, \
+			sistema.ERROR_TIMEOUT )
+			ComprasDelUsuarioNuevas = sistema.dameCuantasComprasHizoElUsuario(unId)
+			self.assertEquals(ComprasDelUsuarioNuevas,ComprasDelUsuarioViejas)
 
 
 if __name__ == "__main__":

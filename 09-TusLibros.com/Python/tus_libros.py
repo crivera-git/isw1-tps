@@ -184,11 +184,13 @@ class SistemMisLibros:
 		if not(unId in self._carritos):
 			raise Exception( self.ERROR_ID_INEXISTENTE )
 		else:
+			self.validarHoraDeLaUltimaOperacion(unId)
 			return self._carritos[unId][1].dameProductos()
 	def addToCart(self,unId,unElemento,unaCantidad):
 		if not(unId in self._carritos):
 			raise Exception(self.ERROR_ID_INEXISTENTE)
 		elif unId in self._carritos:
+			self.validarHoraDeLaUltimaOperacion(unId)
 			self._carritos[unId][1].agregarElemento(unElemento,unaCantidad)
 		else:
 			raise Exception(self.ERROR_COMPORTAMIENTO_NO_MODELADO)
@@ -206,7 +208,7 @@ class SistemMisLibros:
 			''' Para este momento nosotros sabemos que la compra ya se realizo
 			porque sino ya hubiera saltado la exepcion '''
 			usuarioQueCompro = self._carritos[idCarrito][0]
-			self._comprasPorUsuario[usuarioQueCompro].append(carrito)
+			self._comprasPorUsuario[usuarioQueCompro].append(carrito.dameProductos())
 			return transaccionID
 	def listPurchases(self,unUsuario,unaClave):
 		self.validarUsuario(unUsuario,unaClave)
@@ -515,6 +517,27 @@ class testXX(unittest.TestCase):
 		IdDeUnCarrito = sistema.createCart(unId, unaClave)
 
 		self.assertEquals( sistema.listCart(IdDeUnCarrito), {} )
+	def testNoSePuedeHacerListCartDeUnCarritoVencido(self):
+		unId = "user1"
+		unaClave = "user1"
+		nuestrosUsuarios = {"user1":"user1"}
+		unCatalogo = {"Producto1": 10, 2: 2,"Producto3":4,5 :2}
+		tarjetasRobadas = []
+		tarjetaSinCredito = []
+		mpSimulator = MPSimulator(tarjetasRobadas,tarjetaSinCredito)
+		reloj = Reloj()
+		sistema = SistemMisLibros(nuestrosUsuarios,unCatalogo,mpSimulator,reloj)
+		IdDeUnCarrito = sistema.createCart(unId, unaClave)
+		unElemento = "Producto1"
+		sistema.addToCart(IdDeUnCarrito,unElemento,1)
+		reloj.agregarTiempo()
+
+		try:
+			sistema.listCart(IdDeUnCarrito)
+			self.fail()
+		except Exception as carritoVencido:
+			self.assertEquals( carritoVencido.message, \
+			sistema.ERROR_TIMEOUT )
 	def testAgregarUnElementoAUnCarritoYElElementoSeAgrega(self):
 		unId = "user1"
 		unaClave = "user1"
@@ -549,6 +572,27 @@ class testXX(unittest.TestCase):
 		except Exception as carritoInexistente:
 			self.assertEquals( carritoInexistente.message, \
 			sistema.ERROR_ID_INEXISTENTE )
+	def testNoSePuedeHacerAddToCartDeUnCarritoVencido(self):
+		unId = "user1"
+		unaClave = "user1"
+		nuestrosUsuarios = {"user1":"user1"}
+		unCatalogo = {"Producto1": 10, 2: 2,"Producto3":4,5 :2}
+		tarjetasRobadas = []
+		tarjetaSinCredito = []
+		mpSimulator = MPSimulator(tarjetasRobadas,tarjetaSinCredito)
+		reloj = Reloj()
+		sistema = SistemMisLibros(nuestrosUsuarios,unCatalogo,mpSimulator,reloj)
+		IdDeUnCarrito = sistema.createCart(unId, unaClave)
+		unElemento = "Producto1"
+		sistema.addToCart(IdDeUnCarrito,unElemento,1)
+		reloj.agregarTiempo()
+
+		try:
+			sistema.addToCart(IdDeUnCarrito,unElemento,1)
+			self.fail()
+		except Exception as carritoVencido:
+			self.assertEquals( carritoVencido.message, \
+			sistema.ERROR_TIMEOUT )
 	def testListPurchasesDeUnCienteInexistenteFalla(self):
 		unId = "user2"
 		unaClave = "user1"
@@ -587,8 +631,29 @@ class testXX(unittest.TestCase):
 		except Exception as claveErronea:
 			self.assertEquals( claveErronea.message, \
 			sistema.ERROR_CLAVE_INVALIDA )
-	def testListPurchasesDeUnUsuarioQueTieneUnaCompraEsCorrecto(self):
-		pass
+	# def testListPurchasesDeUnUsuarioQueTieneUnaCompraEsCorrecto(self):
+		
+	# 	unId = "user1"
+	# 	unaClave = "user1"
+	# 	nuestrosUsuarios = {"user1":"user1"}
+	# 	unCatalogo = {"Producto1": 10, 2: 2,"Producto3":4,5 :2}
+	# 	tarjetasRobadas = []
+	# 	tarjetaSinCredito = []
+	# 	mpSimulator = MPSimulator(tarjetasRobadas,tarjetaSinCredito)
+	# 	reloj = Reloj()
+	# 	sistema = SistemMisLibros(nuestrosUsuarios,unCatalogo,mpSimulator,reloj)
+	# 	IdDeUnCarrito = sistema.createCart(unId, unaClave)
+	# 	unElemento = "Producto1"
+	# 	sistema.addToCart(IdDeUnCarrito,unElemento,1)
+
+	# 	numeroTarjeta= 5400000000000002
+	# 	vencimiento = FechaMMAA(8, 2018)
+	# 	nombre = "Juan Perez"
+
+	# 	sistema.checkOutCart(IdDeUnCarrito,numeroTarjeta,vencimiento,nombre)
+	# 	venta = [carrito]
+
+	# 	self.assertEquals( , sistema.ERROR_CLAVE_INVALIDA )
 
 
 

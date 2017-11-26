@@ -2,12 +2,23 @@
 import unittest
 from datetime import datetime, timedelta, date, time
 from random import random
-
+class Sale:
+	def __init__(self,IdVenta,Cajero,MontoVenta):
+		self._IdVenta = IdVenta
+		self._cajero = Cajero
+		self._MontoVenta = MontoVenta
+	def getIdVenta(self):
+		return self._IdVenta
+	def getTotal(self):
+		return self._MontoVenta
+	def getCajero(self):
+		return self._cajero
 class Carrito:
 	ERROR_ELEMENTO_FUERA_DEL_CATALOGO = "El producto agregado no pertenece al catalogo"
 	ERROR_CANTIDAD_APARICIONES_NO_POSITIVO = "La cantidad de apariciones es menor o igual a 0"
 	ERROR_CANTIDAD_APARICIONES_NO_ENTERA = "Como cantidad de apariciones se obtuvo numero no entero"
 	ERROR_COMPORTAMIENTO_NO_MODELADO = "Se produjo una acción no contemplada."
+	ERROR_CARRITO_VACIO = "Carrito Vacio"
 	def __init__(self, unCatalogo):
 		self._elementos = {}
 		self._catalogo = unCatalogo
@@ -17,6 +28,8 @@ class Carrito:
 			cantidadElementos += self._elementos[clave]
 		return cantidadElementos
 	def estaEnElCarrito(self, unElemento):
+		if self.estaVacio() :
+			raise Exception(self.ERROR_CARRITO_VACIO)
 		return unElemento in self._elementos
 	def cantidadDeAparciones(self, unElemento):
 		return self._elementos[unElemento]
@@ -25,7 +38,8 @@ class Carrito:
 	def dameCatalogo(self):
 		return self._catalogo
 	def dameProductos(self):
-		return self._elementos
+		res = self._elementos
+		return res
 	def agregarElemento(self, unElemento, cantidadDeAparicionesDeUnElemento):
 		if isinstance(cantidadDeAparicionesDeUnElemento, float):
 			raise Exception(self.ERROR_CANTIDAD_APARICIONES_NO_ENTERA)
@@ -45,8 +59,8 @@ class Cajero:
 	ERROR_CARRITO_VACIO = "El carrito provisto está vacio"
 	ERROR_COMPORTAMIENTO_NO_MODELADO = "Se produjo una acción no contemplada."
 	ERROR_TARJETA_VENCIDA = "La tarjeta esta vencida."
-	def __init__(self,merchantProcesor):
-		self._salesBook = []
+	def __init__(self,merchantProcesor,libroVentas):
+		self._salesBook = libroVentas
 		self._merchantProcesor = merchantProcesor
 	def dameSalesBook(self):
 		return self._salesBook
@@ -69,8 +83,9 @@ class Cajero:
 				monto = float(monto)
 			monto = round( monto, 2)
 			mpMessage = self._merchantProcesor.cobrarAUnaTarjeta(tarjeta,monto)
-			self._salesBook.append(carrito)
-			return self.creartransaccionID()
+			venta = Sale(random(),self,monto)
+			self._salesBook.append(venta)
+			return venta
 		else:
 			raise Exception( self.ERROR_COMPORTAMIENTO_NO_MODELADO )
 	def calcularMontoDeLaCompra(self, carrito):
@@ -145,6 +160,7 @@ class SistemMisLibros:
 	ERROR_ID_INEXISTENTE = "La id no existe."
 	ERROR_COMPORTAMIENTO_NO_MODELADO = "Se produjo una acción no contemplada."
 	ERROR_TIMEOUT = "Tiempo de inactividad excedido."
+
 	def __init__(self, Usuarios, unCatalogo, merchantProcesor,reloj):
 		self._usuarios = Usuarios # diccionario usuario : contraseña
 		self._comprasPorUsuario = {}
@@ -154,6 +170,7 @@ class SistemMisLibros:
 		self._catalogo = unCatalogo
 		self._cajero = Cajero(merchantProcesor)
 		self._reloj = reloj
+		self._salesBook = []
 	def dameCuantasComprasHizoElUsuario(self,unUsuario): 
 		if len(self._comprasPorUsuario[unUsuario]) == 0:
 			return 0
@@ -315,6 +332,7 @@ class testXX(unittest.TestCase):
 			self.assertEquals( 0, unCarrito.cantidadElementos())
 	'''----------------------------Fin test carrito--------------------------'''
 	def testNoPodemosCobrarAUnCarritoVacio(self):
+		libroVentas
 		unCatalogo = {}
 		unCarrito = Carrito(unCatalogo)
 		tarjetasRobadas = []

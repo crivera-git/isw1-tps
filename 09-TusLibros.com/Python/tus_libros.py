@@ -2,6 +2,8 @@
 import unittest
 from datetime import datetime, timedelta, date, time
 from random import random
+
+
 class Sale:
 	def __init__(self,IdVenta,Cajero,MontoVenta):
 		self._IdVenta = IdVenta
@@ -13,6 +15,8 @@ class Sale:
 		return self._MontoVenta
 	def getCajero(self):
 		return self._cajero
+
+
 class Carrito:
 	ERROR_ELEMENTO_FUERA_DEL_CATALOGO = "El producto agregado no pertenece al catalogo"
 	ERROR_CANTIDAD_APARICIONES_NO_POSITIVO = "La cantidad de apariciones es menor o igual a 0"
@@ -59,11 +63,8 @@ class Cajero:
 	ERROR_CARRITO_VACIO = "El carrito provisto está vacio"
 	ERROR_COMPORTAMIENTO_NO_MODELADO = "Se produjo una acción no contemplada."
 	ERROR_TARJETA_VENCIDA = "La tarjeta esta vencida."
-	def __init__(self,merchantProcesor,libroVentas):
-		self._salesBook = libroVentas
+	def __init__(self,merchantProcesor):
 		self._merchantProcesor = merchantProcesor
-	def dameSalesBook(self):
-		return self._salesBook
 	def dameUltimoCarrito(self):
 		return self._salesBook[len(self._salesBook)-1]
 	def validarTarjetaParaLaCompra(self, tarjeta, fechaDeHoy):
@@ -84,7 +85,7 @@ class Cajero:
 			monto = round( monto, 2)
 			mpMessage = self._merchantProcesor.cobrarAUnaTarjeta(tarjeta,monto)
 			venta = Sale(random(),self,monto)
-			self._salesBook.append(venta)
+			#self._salesBook.append(venta)
 			return venta
 		else:
 			raise Exception( self.ERROR_COMPORTAMIENTO_NO_MODELADO )
@@ -233,6 +234,9 @@ class SistemMisLibros:
 		self.validarUsuario(unUsuario,unaClave)
 		return self._comprasPorUsuario[unUsuario]
 	
+#class SistemMisLibrosSession:
+#    def __init__(self, )
+
 
 
 
@@ -332,7 +336,6 @@ class testXX(unittest.TestCase):
 			self.assertEquals( 0, unCarrito.cantidadElementos())
 	'''----------------------------Fin test carrito--------------------------'''
 	def testNoPodemosCobrarAUnCarritoVacio(self):
-		libroVentas
 		unCatalogo = {}
 		unCarrito = Carrito(unCatalogo)
 		tarjetasRobadas = []
@@ -418,7 +421,7 @@ class testXX(unittest.TestCase):
 		except Exception as tarjetaVencida:
 			self.assertEquals( unCajero.ERROR_TARJETA_VENCIDA,\
 			tarjetaVencida.message )
-			self.assertEquals( len(unCajero.dameSalesBook()),0)
+			# self.assertEquals( len(unCajero.dameSalesBook()),0)
 
 	'''-------------------------fin test cajero------------------------------'''
 

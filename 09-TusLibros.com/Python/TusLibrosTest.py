@@ -9,6 +9,12 @@ class testXX(unittest.TestCase):
 		unCatalogo = []
 		unCarrito = Carrito(unCatalogo)
 		self.assertTrue(unCarrito.estaVacio())
+	def testCarritoNoEstaVacioCuandoSeLeAgregaProducto(self):
+		unElemento = "unProducto"
+		unCatalogo = [unElemento]
+		unCarrito = Carrito(unCatalogo)
+		unCarrito.agregarElemento(unElemento, 1)
+		self.assertFalse(unCarrito.estaVacio())
 
 	def testAgregoUnLibroAUnCarritoVacioYSoloContieneAEsteLibro(self):
 		unElemento = "unProducto"
@@ -343,6 +349,24 @@ class testXX(unittest.TestCase):
 		sistema.addToCart(IdDeNuevoCarrito, unElemento, 1)
 		compra = {unElemento: 1}
 		self.assertEquals(sistema.listCart(IdDeNuevoCarrito), compra)
+	def testAgregarMasDeUnElementoAlCarritoYLosElementosSeAgregan(self):
+		unId = "user1"
+		unaClave = "user1"
+		nuestrosUsuarios = {"user1": "user1"}
+		unCatalogo = {"Producto1": 10, 2: 2, "Producto3": 4, 5: 2}
+		tarjetasRobadas = []
+		tarjetaSinCredito = []
+		mpSimulator = MPSimulator(tarjetasRobadas, tarjetaSinCredito)
+		reloj = Reloj()
+		sistema = SistemMisLibros(nuestrosUsuarios, unCatalogo, mpSimulator, reloj)
+		IdDeNuevoCarrito = sistema.createCart(unId, unaClave)
+		unElemento = "Producto1"
+		otroElemento = "Producto3"
+		sistema.addToCart(IdDeNuevoCarrito, unElemento, 1)
+		sistema.addToCart(IdDeNuevoCarrito, otroElemento, 2)
+		compra = {unElemento: 1,otroElemento: 2}
+		self.assertEquals(sistema.listCart(IdDeNuevoCarrito), compra)
+
 
 	def testAddToCartDeUnCarritoInexistente(self):
 		unId = "user1"
@@ -438,6 +462,8 @@ class testXX(unittest.TestCase):
 		sistema = SistemMisLibros(nuestrosUsuarios, unCatalogo, mpSimulator, reloj)
 		IdDeUnCarrito = sistema.createCart(unId, unaClave)
 		self.assertEquals(0, sistema.listPurchases(unId, unaClave).getTotalVentasCantidad())
+		self.assertEquals(0, sistema.listPurchases(unId, unaClave).calcularMontoTotal())
+
 
 	def testListPurchasesDeUnUsuarioQueTieneUnaCompraEsCorrecto(self):
 
@@ -460,6 +486,7 @@ class testXX(unittest.TestCase):
 
 		sistema.checkOutCart(unaSession,unId, numeroTarjeta, vencimiento, nombre)
 		self.assertEquals(1, sistema.listPurchases(unId, unaClave).getTotalVentasCantidad())
+		self.assertEquals(1, sistema.listPurchases(unId, unaClave).getVentasDeProducto(unElemento))
 
 	def testListPurchasesDeUnUsuarioQueTieneMasDeUnaCompraEsCorrecto(self):
 		unId = "user1"

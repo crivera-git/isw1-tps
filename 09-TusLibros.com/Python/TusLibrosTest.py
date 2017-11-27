@@ -98,7 +98,8 @@ class testXX(unittest.TestCase):
 		unaFecha = FechaMMAA(10, 2017)
 		nombre = "Juan Perez"
 		tarjeta = Tarjeta(vencimiento, 5400000000000001, nombre)
-		unCajero = Cajero(idUsuario, merchantProcesor, unCarrito, tarjeta, unaFecha)
+		idUsuario = "1234"
+		unCajero = Cajero(idUsuario, mpSimulator, unCarrito, tarjeta, unaFecha)
 
 		try:
 			unCajero.checkOut(unCarrito, tarjeta, unaFecha)
@@ -116,9 +117,10 @@ class testXX(unittest.TestCase):
 		unaFecha = FechaMMAA(10, 2017)
 		nombre = "Juan Perez"
 		tarjeta = Tarjeta(vencimiento, 5400000000000001, nombre)
-		unCajero = Cajero(idUsuario, merchantProcesor, unCarrito, tarjeta, unaFecha)
-
+		idUsuario = "1234"
 		unCarrito.agregarElemento("Producto1", 1)  # count 10
+		unCajero = Cajero(idUsuario, mpSimulator, unCarrito, tarjeta, unaFecha)
+
 
 		self.assertEquals(10, unCajero.calcularMontoDeLaCompra(unCarrito))
 	'''testing.
@@ -138,15 +140,16 @@ class testXX(unittest.TestCase):
 		tarjetasRobadas = []
 		tarjetaSinCredito = []
 		mpSimulator = MPSimulator(tarjetasRobadas, tarjetaSinCredito)
-		vencimiento = FechaMMAA(8, 2017)
+		vencimiento = FechaMMAA(12, 2017)
 		unaFecha = FechaMMAA(10, 2017)
 		nombre = "Juan Perez"
 		tarjeta = Tarjeta(vencimiento, 5400000000000001, nombre)
-		unCajero = Cajero(unId, mpSimulator, unCarrito, tarjeta, unaFecha)
-
 		unCarrito.agregarElemento("Producto1", 5)  # count 50
 		unCarrito.agregarElemento(2, 5)  # count 60
 		unCarrito.agregarElemento("Producto3", 10)  # count 100
+		unCajero = Cajero(unId, mpSimulator, unCarrito, tarjeta, unaFecha)
+
+		
 
 		self.assertEquals(100, unCajero.calcularMontoDeLaCompra(unCarrito))
 
@@ -206,10 +209,11 @@ class testXX(unittest.TestCase):
 		unaFecha = FechaMMAA(10, 2016)
 		nombre = "Juan Perez"
 		unaTarjetaRobada = Tarjeta(vencimiento, 5400000000000001, nombre)
-		unCajero = Cajero(idUsuario, merchantProcesor, unCarrito, tarjeta, unaFecha)
+		idUsuario = "1234"
+		unCajero = Cajero(idUsuario, mpSimulator, unCarrito, unaTarjetaRobada, unaFecha)
 		unCarrito.agregarElemento("Producto1", 2)
 		try:
-			unCajero.checkOut(unCarrito, unaTarjetaRobada, unaFecha)
+			unCajero.checkOut()
 			self.fail()
 		except Exception as tarjetaRobada:
 			self.assertEquals("Tarjeta Robada",
@@ -226,7 +230,7 @@ class testXX(unittest.TestCase):
 		nombre = "Juan Perez"
 		unaTarjetaSinCredito = Tarjeta(vencimiento, 5400000000000002, nombre)
 		
-		unCajero = Cajero(idUsuario, merchantProcesor, unCarrito, tarjeta, unaFecha)
+		unCajero = Cajero(idUsuario, mpSimulator, unCarrito, tarjeta, unaFecha)
 
 		unCarrito.agregarElemento("Producto1", 2)
 		try:

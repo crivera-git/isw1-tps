@@ -9,8 +9,8 @@ from Cajero import *
 class TusLibrosSession():
     ERROR_TIMEOUT = "Tiempo de inactividad excedido."
 
-    def __init__(self, unUsuario, unCarrito, unReloj):
-        self._usuario = unUsuario
+    def __init__(self, unNombreDeUsuario, unCarrito, unReloj):
+        self._usuario = unNombreDeUsuario
         self._relojSession = unReloj
         self._horaUltimaOperacion = self._relojSession.now()
         self._carrito = unCarrito

@@ -20,8 +20,9 @@ class VentasPorCliente():
 
     def agruparVentas(self, ventasPorCliente):
         for carrito in ventasPorCliente:
-            for producto in carrito:
-                self._ventasPorProducto[producto] += carrito[producto]
+            productos = carrito.dameProductos()
+            for producto in productos:
+                self._ventasPorProducto[producto] += productos[producto]
      
     def getVentasDeProducto(self, unProducto):
         return self._ventasPorProducto[unProducto]

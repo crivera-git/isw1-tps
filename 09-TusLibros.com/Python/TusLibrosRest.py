@@ -28,21 +28,21 @@ class SistemMisLibros:
 		self._reloj = reloj
 		self._salesBook = []
 
-	def createCart(self, unUsuario, unaClave):
-		self.validarUsuario(unUsuario, unaClave)
+	def createCart(self, unNombreDeUsuario, unaClave):
+		self.validarUsuario(unNombreDeUsuario, unaClave)
 		IDNueva = self.crearId()
-		unaSession = TusLibrosSession(unUsuario, Carrito(self._catalogo), self._reloj)
+		unaSession = TusLibrosSession(unNombreDeUsuario, Carrito(self._catalogo), self._reloj)
 		self._sessions[IDNueva] = unaSession
 		return IDNueva
 
 	def listCart(self, unId):
 	   	return self.getSession(unId).listCart()
 	
-	def addToCart(self, unUsuario, unElemento, unaCantidad):
-		self.getSession(unUsuario).addToCart(unElemento, unaCantidad)
+	def addToCart(self, unaSession, unElemento, unaCantidad):
+		self.getSession(unaSession).addToCart(unElemento, unaCantidad)
 		
-	def checkOutCart(self, idUsuario, nroTarjeta, fechaVencimientoTarjeta, nombreTarjeta):
-		session = self.getSession(idUsuario)
+	def checkOutCart(self, unaSession,idUsuario, nroTarjeta, fechaVencimientoTarjeta, nombreTarjeta):
+		session = self.getSession(unaSession)
 		tarjeta = Tarjeta(fechaVencimientoTarjeta, nroTarjeta, nombreTarjeta)
 		fecha = self.fechaDeHoy()
 		carrito = session.getCarrito()
@@ -55,17 +55,17 @@ class SistemMisLibros:
 		self.validarUsuario(unUsuario, unaClave)
 		ventasDelCliente = []
 		for sale in self._salesBook:
-			if(sale.getCajero().getUsuario() == unUsuario):
-				ventasDelCliente.append(sale.getCajero().getCarrito())
+    			if(sale.getCajero().getUsuario() == unUsuario):
+    				ventasDelCliente.append(sale.getCajero().getCarrito())
 		return VentasPorCliente(ventasDelCliente, self._catalogo)
 
 	def crearId(self):
 		return random()
 
-	def getSession(self, unUsuario):
-		if not(unUsuario in self._sessions):
+	def getSession(self, unaSession):
+		if not(unaSession in self._sessions):
 			raise Exception(self.ERROR_ID_INEXISTENTE)
-		return self._sessions[unUsuario]
+		return self._sessions[unaSession]
 	
 	def validarUsuario(self, unUsuario, unaClave):
 		if not(unUsuario in self._usuarios):
